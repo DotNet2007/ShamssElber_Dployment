@@ -37,6 +37,7 @@ import {
   formatFileSize,
 } from "@/app/helpers/videoHelper";
 import { useGetEventsQuery, useGetEventTypesQuery, useGetItemTypesQuery, useGetProdLinesQuery, useGetProductEntityOneQuery, useGetProductEntityTwoQuery, useGetSectorsQuery, useGetSongsQuery, useGetSpeakersQuery } from "@/app/services/sectors-api";
+import { useCreateVideoMutation } from "@/app/services/videos-api";
 
 export default function AddVideoPage() {
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -108,6 +109,7 @@ export default function AddVideoPage() {
   const { data: speakers = [], isLoading: speakersIsLoading, refetch: refetchSpeakers, isFetching: speakersIsFetching, isError: speakersIsError } = useGetSpeakersQuery();
   const { data: events = [], isLoading: eventsIsLoading, refetch: refetchEvents, isFetching: eventsIsFetching, isError: eventsIsError } = useGetEventsQuery();
 
+  const [ createVideo, { isLoading: isSaving } ] = useCreateVideoMutation();
 
   const [productType, setProductType] = useState("");
 
@@ -345,105 +347,564 @@ export default function AddVideoPage() {
   // SAVE
   // ==================================================
 
-  const handleSave = () => {
+  // const handleSave = () => {
+  //   setError("");
+
+  //   if (!date) {
+  //     setError("من فضلك أدخل التاريخ.");
+  //     return;
+  //   }
+
+  //   if (!title.trim()) {
+  //     setError("من فضلك أدخل الصنف.");
+  //     return;
+  //   }
+
+  //   if (!productName.trim()) {
+  //     setError("من فضلك أدخل اسم المنتج.");
+  //     return;
+  //   }
+
+  //   if (!productSerial.trim()) {
+  //     setError("من فضلك أدخل تسلسل المنتج.");
+  //     return;
+  //   }
+
+  //   if (!videoFile) {
+  //     setError("من فضلك اختر ملف الفيديو.");
+  //     return;
+  //   }
+
+  //   console.log({
+  //     // 1
+  //     date,
+
+  //     // 2
+  //     title,
+
+  //     // 3
+  //     production1,
+
+  //     // 4
+  //     production2,
+
+  //     // 5
+  //     sector,
+
+  //     // 6
+  //     translation,
+
+  //     // 7
+  //     productType,
+
+  //     // 8
+  //     eventType,
+
+  //     // 9
+  //     productionLine,
+
+  //     // 10
+  //     productName,
+
+  //     // 11
+  //     productSerial,
+
+  //     // 12
+  //     eventName,
+
+  //     // 13
+  //     hymnName,
+
+  //     // 14
+  //     speakerName,
+
+  //     // Repeated
+  //     isRepeated,
+  //     repeatType,
+
+  //     // Upload channels
+  //     mainUploadChannel,
+  //     youtubeLink,
+  //     facebookLink,
+  //     instagramLink,
+
+  //     // Product content
+  //     content1,
+  //     content2,
+  //     content3,
+  //     content4,
+  //     content5,
+
+  //     // Video
+  //     duration: videoDuration,
+  //     description,
+  //     notes,
+  //     videoFile,
+
+  //     // Images
+  //     thumbnailFile,
+  //   });
+
+  //   alert("تم تجهيز بيانات الفيديو للحفظ.");
+  // };
+
+  // ==================================================
+// SAVE VIDEO
+// ==================================================
+
+  const handleSave = async () => {
+
     setError("");
 
+
+    // ==================================================
+    // VALIDATION
+    // ==================================================
+
     if (!date) {
-      setError("من فضلك أدخل التاريخ.");
+
+      setError(
+        "من فضلك أدخل التاريخ."
+      );
+
       return;
     }
+
 
     if (!title.trim()) {
-      setError("من فضلك أدخل الصنف.");
+
+      setError(
+        "من فضلك أدخل الصنف."
+      );
+
       return;
     }
+
 
     if (!productName.trim()) {
-      setError("من فضلك أدخل اسم المنتج.");
+
+      setError(
+        "من فضلك أدخل اسم المنتج."
+      );
+
       return;
     }
+
 
     if (!productSerial.trim()) {
-      setError("من فضلك أدخل تسلسل المنتج.");
+
+      setError(
+        "من فضلك أدخل تسلسل المنتج."
+      );
+
       return;
     }
+
 
     if (!videoFile) {
-      setError("من فضلك اختر ملف الفيديو.");
+
+      setError(
+        "من فضلك اختر ملف الفيديو."
+      );
+
       return;
     }
 
-    console.log({
-      // 1
-      date,
 
-      // 2
-      title,
+    // ==================================================
+    // CREATE FORMDATA
+    // ==================================================
 
-      // 3
-      production1,
+    const formData =
+      new FormData();
 
-      // 4
-      production2,
 
-      // 5
-      sector,
+    // ==================================================
+    // VIDEO INFORMATION
+    // ==================================================
 
-      // 6
-      translation,
+    formData.append(
+      "date",
+      date
+    );
 
-      // 7
-      productType,
+    formData.append(
+      "title",
+      title
+    );
 
-      // 8
-      eventType,
 
-      // 9
-      productionLine,
+    // ==================================================
+    // PRODUCTION
+    // ==================================================
 
-      // 10
-      productName,
+    if (production1) {
 
-      // 11
-      productSerial,
+      formData.append(
+        "production1",
+        production1
+      );
 
-      // 12
-      eventName,
+    }
 
-      // 13
-      hymnName,
 
-      // 14
-      speakerName,
+    if (production2) {
 
-      // Repeated
-      isRepeated,
-      repeatType,
+      formData.append(
+        "production2",
+        production2
+      );
 
-      // Upload channels
-      mainUploadChannel,
-      youtubeLink,
-      facebookLink,
-      instagramLink,
+    }
 
-      // Product content
-      content1,
-      content2,
-      content3,
-      content4,
-      content5,
 
-      // Video
-      duration: videoDuration,
-      description,
-      notes,
-      videoFile,
+    // ==================================================
+    // SECTOR
+    // ==================================================
 
-      // Images
-      thumbnailFile,
-    });
+    if (sector) {
 
-    alert("تم تجهيز بيانات الفيديو للحفظ.");
+      formData.append(
+        "sector",
+        sector
+      );
+
+    }
+
+
+    // ==================================================
+    // TRANSLATION
+    // ==================================================
+
+    if (translation.trim()) {
+
+      formData.append(
+        "translation",
+        translation
+      );
+
+    }
+
+
+    // ==================================================
+    // PRODUCT
+    // ==================================================
+
+    if (productType) {
+
+      formData.append(
+        "productType",
+        productType
+      );
+
+    }
+
+
+    if (productName.trim()) {
+
+      formData.append(
+        "productName",
+        productName
+      );
+
+    }
+
+
+    if (productSerial.trim()) {
+
+      formData.append(
+        "productSerial",
+        productSerial
+      );
+
+    }
+
+
+    // ==================================================
+    // EVENT
+    // ==================================================
+
+    if (eventType) {
+
+      formData.append(
+        "eventType",
+        eventType
+      );
+
+    }
+
+
+    if (eventName) {
+
+      formData.append(
+        "eventName",
+        eventName
+      );
+
+    }
+
+
+    // ==================================================
+    // PRODUCTION LINE
+    // ==================================================
+
+    if (productionLine) {
+
+      formData.append(
+        "productionLine",
+        productionLine
+      );
+
+    }
+
+
+    // ==================================================
+    // HYMN
+    // ==================================================
+
+    if (hymnName) {
+
+      formData.append(
+        "hymnName",
+        hymnName
+      );
+
+    }
+
+
+    // ==================================================
+    // SPEAKER
+    // ==================================================
+
+    if (speakerName) {
+
+      formData.append(
+        "speakerName",
+        speakerName
+      );
+
+    }
+
+
+    // ==================================================
+    // REPEATED
+    // ==================================================
+
+    formData.append(
+      "isRepeated",
+      String(isRepeated)
+    );
+
+
+    if (repeatType) {
+
+      formData.append(
+        "repeatType",
+        repeatType
+      );
+
+    }
+
+
+    // ==================================================
+    // UPLOAD CHANNELS
+    // ==================================================
+
+    if (mainUploadChannel) {
+
+      formData.append(
+        "mainUploadChannel",
+        mainUploadChannel
+      );
+
+    }
+
+
+    if (youtubeLink.trim()) {
+
+      formData.append(
+        "youtubeLink",
+        youtubeLink
+      );
+
+    }
+
+
+    if (facebookLink.trim()) {
+
+      formData.append(
+        "facebookLink",
+        facebookLink
+      );
+
+    }
+
+
+    if (instagramLink.trim()) {
+
+      formData.append(
+        "instagramLink",
+        instagramLink
+      );
+
+    }
+
+
+    // ==================================================
+    // CONTENT
+    // ==================================================
+
+    if (content1.trim()) {
+
+      formData.append(
+        "content1",
+        content1
+      );
+
+    }
+
+
+    if (content2.trim()) {
+
+      formData.append(
+        "content2",
+        content2
+      );
+
+    }
+
+
+    if (content3.trim()) {
+
+      formData.append(
+        "content3",
+        content3
+      );
+
+    }
+
+
+    if (content4.trim()) {
+
+      formData.append(
+        "content4",
+        content4
+      );
+
+    }
+
+
+    if (content5.trim()) {
+
+      formData.append(
+        "content5",
+        content5
+      );
+
+    }
+
+
+    // ==================================================
+    // VIDEO INFORMATION
+    // ==================================================
+
+    formData.append(
+      "duration",
+      videoDuration
+    );
+
+
+    if (description.trim()) {
+
+      formData.append(
+        "description",
+        description
+      );
+
+    }
+
+
+    if (notes.trim()) {
+
+      formData.append(
+        "notes",
+        notes
+      );
+
+    }
+
+
+    // ==================================================
+    // VIDEO FILE
+    // ==================================================
+
+    formData.append(
+      "videoFile",
+      videoFile
+    );
+
+
+    // ==================================================
+    // THUMBNAIL
+    // ==================================================
+
+    if (thumbnailFile) {
+
+      formData.append(
+        "thumbnailFile",
+        thumbnailFile
+      );
+
+    }
+
+
+    // ==================================================
+    // SEND TO BACKEND
+    // ==================================================
+
+    try {
+
+      const result =
+        await createVideo(
+          formData
+        ).unwrap();
+
+
+      console.log(
+        "Video created:",
+        result
+      );
+
+
+      alert(
+        "تم حفظ الفيديو كمسودة بنجاح."
+      );
+
+
+      // Clear form after successful save
+      handleRefresh();
+
+    }
+
+    catch (error: any) {
+
+      console.error(
+        "Create video error:",
+        error
+      );
+
+
+      const message =
+        error?.data?.message ||
+        "حدث خطأ أثناء حفظ الفيديو.";
+
+
+      setError(
+        message
+      );
+
+    }
+
   };
 
   return (
@@ -514,6 +975,7 @@ export default function AddVideoPage() {
           <button
             type="button"
             onClick={handleSave}
+            disabled={isSaving}
             className="
               inline-flex
               h-10

@@ -9,85 +9,223 @@ import {
   Play,
   CalendarDays,
   Video,
+  UserRound,
+  List,
 } from "lucide-react";
+
 import Link from "next/link";
 
+/* ========================================================= */
+/* VIDEO TYPE                                                 */
+/* ========================================================= */
+
 export type VideoItem = {
-  id: number;
-  fileName: string;
-  title: string;
-  classification: string;
-  duration: string;
-  date: string;
-  thumbnail?: string;
+  Code: number;
+
+  TDate: string | null;
+
+  Item_Code: number | null;
+
+  ProdEntity1_Code: number | null;
+  ProdEntity2_Code: number | null;
+
+  Sec_Code: number | null;
+
+  Translate: string | null;
+
+  ItemType_Code: number | null;
+
+  EventType_Code: number | null;
+
+  ProdLine_Code: number | null;
+
+  ItemName: string | null;
+
+  ItemSer: string | null;
+
+  Event_Code: number | null;
+
+  Song_Code: number | null;
+
+  Speaker_Code: number | null;
+
+  EventStatus: string | null;
+
+  ChannelName: string | null;
+
+  YouTubeLink: string | null;
+
+  FaceBookLink: string | null;
+
+  InstagramLink: string | null;
+
+  FileName: string | null;
+
+  ImageLink: string | null;
+
+  RecordStatus: "DRAFT" | "SUBMITTED";
+
+  /* ======================================================= */
+  /* RELATIONS                                                */
+  /* ======================================================= */
+
+  Sector?: {
+    Code: number;
+    DescA: string;
+  } | null;
+
+  ItemType?: {
+    Code: number;
+    DescA: string;
+  } | null;
+
+  EventType?: {
+    Code: number;
+    DescA: string;
+  } | null;
+
+  ProdLine?: {
+    Code: number;
+    DescA: string;
+  } | null;
+
+  Song?: {
+    Code: number;
+    DescA: string;
+  } | null;
+
+  Speaker?: {
+    Code: number;
+    DescA: string;
+  } | null;
+
+  ProdEntity1?: {
+    Code: number;
+    DescA: string;
+  } | null;
+
+  ProdEntity2?: {
+    Code: number;
+    DescA: string;
+  } | null;
+
+  Event?: {
+    Code: number;
+    DescA: string;
+    Is_Repeated?: string;
+  } | null;
 };
+
+/* ========================================================= */
+/* PROPS                                                       */
+/* ========================================================= */
 
 type VideosCardProps = {
   videos?: VideoItem[];
+
+  /*
+   * الـ filter أصبح controlled من VideosPage
+   */
+  activeFilter: "all" | "mine";
+
+  /*
+   * تغيير الفلتر
+   */
+  onAllVideos?: () => void;
+
+  onMyVideos?: () => void;
+
+  /*
+   * Actions
+   */
   onAddVideo?: () => void;
+
   onView?: (video: VideoItem) => void;
+
   onDownload?: (video: VideoItem) => void;
+
   onDelete?: (video: VideoItem) => void;
 };
 
-const defaultVideos: VideoItem[] = [
-  {
-    id: 1,
-    fileName: "https://unsplash.com/photos/a-church-interior-features-stained-glass-windows-and-a-cross-mKF-470xjUc?utm_source=chatgpt.com",
-    title: "احتفال الكنيسة",
-    classification: "احتفالات",
-    duration: "12:35",
-    date: "27 سبتمبر 2026",
-  },
-  {
-    id: 2,
-    fileName: "https://unsplash.com/photos/a-church-interior-features-stained-glass-windows-and-a-cross-mKF-470xjUc?utm_source=chatgpt.com",
-    title: "عظة الأحد",
-    classification: "عظات",
-    duration: "45:20",
-    date: "25 سبتمبر 2026",
-  },
-  {
-    id: 3,
-    fileName: "video_003.mp4",
-    title: "اجتماع الشباب",
-    classification: "اجتماعات",
-    duration: "32:14",
-    date: "22 سبتمبر 2026",
-  },
-  {
-    id: 4,
-    fileName: "video_004.mp4",
-    title: "ترنيمة خاصة",
-    classification: "ترانيم",
-    duration: "06:42",
-    date: "20 سبتمبر 2026",
-  },
-  {
-    id: 5,
-    fileName: "video_005.mp4",
-    title: "مؤتمر الشباب",
-    classification: "مؤتمرات",
-    duration: "01:24:30",
-    date: "18 سبتمبر 2026",
-  },
-  {
-    id: 6,
-    fileName: "video_006.mp4",
-    title: "احتفال خاص",
-    classification: "احتفالات",
-    duration: "22:10",
-    date: "15 سبتمبر 2026",
-  },
-];
+/* ========================================================= */
+/* API URL                                                     */
+/* ========================================================= */
+
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:5000";
+
+/* ========================================================= */
+/* FILE URL HELPER                                             */
+/* ========================================================= */
+
+function getFileUrl(
+  fileName: string | null | undefined
+): string | null {
+  if (!fileName) {
+    return null;
+  }
+
+  const value = fileName.trim();
+
+  if (!value) {
+    return null;
+  }
+
+  /* ------------------------------------------------------- */
+  /* Already a complete URL                                   */
+  /* ------------------------------------------------------- */
+
+  if (
+    value.startsWith("http://") ||
+    value.startsWith("https://")
+  ) {
+    return value;
+  }
+
+  /* ------------------------------------------------------- */
+  /* Already an absolute path                                 */
+  /* ------------------------------------------------------- */
+
+  if (value.startsWith("/")) {
+    return `${API_URL}${value}`;
+  }
+
+  /* ------------------------------------------------------- */
+  /* File stored by video upload                              */
+  /* ------------------------------------------------------- */
+
+  return `${API_URL}/uploads/videos/${encodeURIComponent(
+    value
+  )}`;
+}
+
+/* ========================================================= */
+/* VIDEOS CARD                                                 */
+/* ========================================================= */
 
 export default function VideosCard({
-  videos = defaultVideos,
+  videos = [],
+  activeFilter,
+  onAllVideos,
+  onMyVideos,
   onAddVideo,
   onView,
   onDownload,
   onDelete,
 }: VideosCardProps) {
+  /* ======================================================== */
+  /* FILTER                                                    */
+  /* ======================================================== */
+
+  const handleAllVideos = () => {
+    onAllVideos?.();
+  };
+
+  const handleMyVideos = () => {
+    onMyVideos?.();
+  };
+
   return (
     <section
       dir="rtl"
@@ -102,7 +240,9 @@ export default function VideosCard({
         shadow-[0_2px_10px_rgba(15,23,42,0.04)]
       "
     >
+      {/* ================================================== */}
       {/* HEADER */}
+      {/* ================================================== */}
 
       <div
         className="
@@ -118,7 +258,9 @@ export default function VideosCard({
           md:px-6
         "
       >
+        {/* ================================================== */}
         {/* TITLE */}
+        {/* ================================================== */}
 
         <div className="flex items-center gap-2">
           <Video
@@ -155,36 +297,145 @@ export default function VideosCard({
           </span>
         </div>
 
-        {/* ADD */}
+        {/* ================================================== */}
+        {/* BUTTONS */}
+        {/* ================================================== */}
 
-        <Link
-        href={"/videos/add"}
-        //   onClick={onAddVideo}
+        <div
           className="
             flex
-            h-9
+            flex-wrap
             items-center
-            gap-1.5
-            rounded-lg
-            bg-indigo-600
-            px-3.5
-            text-[12px]
-            font-semibold
-            text-white
-            transition
-            hover:bg-indigo-700
-            active:scale-[0.98]
+            gap-2
           "
         >
-          <Plus size={15} />
+          {/* ================================================== */}
+          {/* ALL */}
+          {/* ================================================== */}
 
-          <span>
-            إضافة فيديو
-          </span>
-        </Link>
+          <button
+            type="button"
+            onClick={handleAllVideos}
+            className={`
+              flex
+              h-9
+              items-center
+              gap-1.5
+              rounded-lg
+              px-3.5
+              text-[12px]
+              font-semibold
+              transition
+              active:scale-[0.98]
+
+              ${
+                activeFilter === "all"
+                  ? `
+                    bg-indigo-600
+                    text-white
+                    shadow-sm
+                    hover:bg-indigo-700
+                  `
+                  : `
+                    border
+                    border-slate-200
+                    bg-white
+                    text-slate-600
+                    hover:border-indigo-200
+                    hover:bg-indigo-50
+                    hover:text-indigo-600
+                  `
+              }
+            `}
+          >
+            <List size={15} />
+
+            <span>
+              الكل
+            </span>
+          </button>
+
+          {/* ================================================== */}
+          {/* MY VIDEOS */}
+          {/* ================================================== */}
+
+          <button
+            type="button"
+            onClick={handleMyVideos}
+            className={`
+              flex
+              h-9
+              items-center
+              gap-1.5
+              rounded-lg
+              px-3.5
+              text-[12px]
+              font-semibold
+              transition
+              active:scale-[0.98]
+
+              ${
+                activeFilter === "mine"
+                  ? `
+                    bg-indigo-600
+                    text-white
+                    shadow-sm
+                    hover:bg-indigo-700
+                  `
+                  : `
+                    border
+                    border-slate-200
+                    bg-white
+                    text-slate-600
+                    hover:border-indigo-200
+                    hover:bg-indigo-50
+                    hover:text-indigo-600
+                  `
+              }
+            `}
+          >
+            <UserRound size={15} />
+
+            <span>
+              الفيديوهات الخاصة بي
+            </span>
+          </button>
+
+          {/* ================================================== */}
+          {/* ADD VIDEO */}
+          {/* ================================================== */}
+
+          <Link
+            href="/videos/add"
+            onClick={onAddVideo}
+            className="
+              flex
+              h-9
+              items-center
+              gap-1.5
+              rounded-lg
+              bg-indigo-600
+              px-3.5
+              text-[12px]
+              font-semibold
+              text-white
+              transition
+              hover:bg-indigo-700
+              active:scale-[0.98]
+            "
+          >
+            <Plus size={15} />
+
+            <span>
+              إضافة فيديو
+            </span>
+          </Link>
+        </div>
       </div>
 
+      {/* ================================================== */}
       {/* VIDEO GRID */}
+      {/* ================================================== */}
 
       <div
         className="
@@ -198,15 +449,33 @@ export default function VideosCard({
           md:p-5
         "
       >
-        {videos.map((video) => (
-          <VideoItemCard
-            key={video.id}
-            video={video}
-            onView={onView}
-            onDownload={onDownload}
-            onDelete={onDelete}
-          />
-        ))}
+        {videos.length === 0 ? (
+          <div
+            className="
+              col-span-full
+              flex
+              min-h-[220px]
+              items-center
+              justify-center
+              text-sm
+              text-slate-400
+            "
+          >
+            {activeFilter === "mine"
+              ? "لا توجد فيديوهات خاصة بك"
+              : "لا توجد فيديوهات"}
+          </div>
+        ) : (
+          videos.map((video) => (
+            <VideoItemCard
+              key={video.Code}
+              video={video}
+              onView={onView}
+              onDownload={onDownload}
+              onDelete={onDelete}
+            />
+          ))
+        )}
       </div>
     </section>
   );
@@ -223,10 +492,69 @@ function VideoItemCard({
   onDelete,
 }: {
   video: VideoItem;
+
   onView?: (video: VideoItem) => void;
+
   onDownload?: (video: VideoItem) => void;
+
   onDelete?: (video: VideoItem) => void;
 }) {
+  /* ======================================================== */
+  /* DISPLAY VALUES                                           */
+  /* ======================================================== */
+
+  const videoTitle =
+    video.ItemName?.trim() || "بدون اسم";
+
+  const fileName =
+    video.FileName?.trim() || "بدون ملف";
+
+  const imageUrl = getFileUrl(
+    video.ImageLink
+  );
+
+  const videoUrl = getFileUrl(
+    video.FileName
+  );
+
+  const formattedDate = video.TDate
+    ? new Date(
+        video.TDate
+      ).toLocaleDateString(
+        "ar-EG",
+        {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }
+      )
+    : "-";
+
+  const recordStatus =
+    video.RecordStatus === "DRAFT"
+      ? "مسودة"
+      : "تم الإرسال";
+
+  /* ======================================================== */
+  /* ITEM TYPE                                                 */
+  /* ======================================================== */
+
+  const itemType =
+    video.ItemType?.DescA?.trim() ||
+    (video.ItemType_Code
+      ? `#${video.ItemType_Code}`
+      : "-");
+
+  /* ======================================================== */
+  /* SECTOR                                                    */
+  /* ======================================================== */
+
+  const sector =
+    video.Sector?.DescA?.trim() ||
+    (video.Sec_Code
+      ? `#${video.Sec_Code}`
+      : "-");
+
   return (
     <div
       className="
@@ -244,7 +572,9 @@ function VideoItemCard({
         hover:shadow-[0_8px_25px_rgba(15,23,42,0.07)]
       "
     >
+      {/* ================================================== */}
       {/* THUMBNAIL */}
+      {/* ================================================== */}
 
       <button
         type="button"
@@ -258,10 +588,10 @@ function VideoItemCard({
           bg-slate-900
         "
       >
-        {video.thumbnail ? (
+        {imageUrl ? (
           <img
-            src={video.thumbnail}
-            alt={video.title}
+            src={imageUrl}
+            alt={videoTitle}
             className="
               h-full
               w-full
@@ -292,7 +622,9 @@ function VideoItemCard({
           </div>
         )}
 
+        {/* ================================================== */}
         {/* DARK OVERLAY */}
+        {/* ================================================== */}
 
         <div
           className="
@@ -304,7 +636,9 @@ function VideoItemCard({
           "
         />
 
+        {/* ================================================== */}
         {/* PLAY */}
+        {/* ================================================== */}
 
         <div
           className="
@@ -334,7 +668,9 @@ function VideoItemCard({
           />
         </div>
 
-        {/* DURATION */}
+        {/* ================================================== */}
+        {/* RECORD STATUS */}
+        {/* ================================================== */}
 
         <div
           className="
@@ -350,14 +686,18 @@ function VideoItemCard({
             text-white
           "
         >
-          {video.duration}
+          {recordStatus}
         </div>
       </button>
 
+      {/* ================================================== */}
       {/* CONTENT */}
+      {/* ================================================== */}
 
       <div className="p-4">
+        {/* ================================================== */}
         {/* TITLE */}
+        {/* ================================================== */}
 
         <div className="min-w-0">
           <h3
@@ -367,9 +707,9 @@ function VideoItemCard({
               font-bold
               text-slate-800
             "
-            title={video.title}
+            title={videoTitle}
           >
-            {video.title}
+            {videoTitle}
           </h3>
 
           <p
@@ -379,13 +719,15 @@ function VideoItemCard({
               text-[10px]
               text-slate-400
             "
-            title={video.fileName}
+            title={fileName}
           >
-            {video.fileName}
+            {fileName}
           </p>
         </div>
 
+        {/* ================================================== */}
         {/* META */}
+        {/* ================================================== */}
 
         <div
           className="
@@ -399,6 +741,10 @@ function VideoItemCard({
             pt-3
           "
         >
+          {/* ================================================== */}
+          {/* DATE */}
+          {/* ================================================== */}
+
           <div
             className="
               flex
@@ -415,13 +761,19 @@ function VideoItemCard({
             />
 
             <span className="truncate">
-              {video.date}
+              {formattedDate}
             </span>
           </div>
+
+          {/* ================================================== */}
+          {/* ITEM TYPE */}
+          {/* ================================================== */}
 
           <span
             className="
               shrink-0
+              max-w-[120px]
+              truncate
               rounded-md
               bg-slate-100
               px-2
@@ -430,12 +782,39 @@ function VideoItemCard({
               font-medium
               text-slate-500
             "
+            title={itemType}
           >
-            {video.classification}
+            {itemType}
           </span>
         </div>
 
+        {/* ================================================== */}
+        {/* SECTOR */}
+        {/* ================================================== */}
+
+        <div
+          className="
+            mt-2
+            flex
+            items-center
+            justify-end
+          "
+        >
+          <span
+            className="
+              truncate
+              text-[9px]
+              text-slate-400
+            "
+            title={sector}
+          >
+            {sector}
+          </span>
+        </div>
+
+        {/* ================================================== */}
         {/* ACTIONS */}
+        {/* ================================================== */}
 
         <div
           className="
@@ -446,27 +825,57 @@ function VideoItemCard({
             gap-1.5
           "
         >
+          {/* ================================================== */}
+          {/* VIEW */}
+          {/* ================================================== */}
+
           <VideoActionButton
             title="عرض"
-            onClick={() => onView?.(video)}
+            onClick={() =>
+              onView?.(video)
+            }
           >
             <Eye size={14} />
           </VideoActionButton>
 
+          {/* ================================================== */}
+          {/* DOWNLOAD */}
+          {/* ================================================== */}
+
           <VideoActionButton
             title="تحميل"
-            onClick={() => onDownload?.(video)}
+            onClick={() => {
+              if (videoUrl) {
+                window.open(
+                  videoUrl,
+                  "_blank",
+                  "noopener,noreferrer"
+                );
+              }
+
+              onDownload?.(video);
+            }}
           >
             <Download size={14} />
           </VideoActionButton>
 
+          {/* ================================================== */}
+          {/* DELETE */}
+          {/* ================================================== */}
+
           <VideoActionButton
             title="حذف"
             danger
-            onClick={() => onDelete?.(video)}
+            onClick={() =>
+              onDelete?.(video)
+            }
           >
             <Trash2 size={14} />
           </VideoActionButton>
+
+          {/* ================================================== */}
+          {/* MORE */}
+          {/* ================================================== */}
 
           <VideoActionButton title="المزيد">
             <MoreVertical size={14} />
@@ -488,8 +897,11 @@ function VideoActionButton({
   onClick,
 }: {
   children: React.ReactNode;
+
   title: string;
+
   danger?: boolean;
+
   onClick?: () => void;
 }) {
   return (

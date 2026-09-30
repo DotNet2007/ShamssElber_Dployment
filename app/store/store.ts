@@ -1,16 +1,19 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { videosDropdownAPI } from "../services/sectors-api";
+import { videosApi } from "../services/videos-api";
 
 
 
 export const store = configureStore({
   reducer: {
     [videosDropdownAPI.reducerPath]: videosDropdownAPI.reducer,
+    [videosApi.reducerPath]: videosApi.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
-      videosDropdownAPI.middleware
+      videosApi.middleware,
+      videosDropdownAPI.middleware,
     ),
 });
 
