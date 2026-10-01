@@ -152,7 +152,93 @@ export default function VideoSearchCard({
 
         {/* DATE */}
 
-        <div
+                      {/* FROM DATE */}
+
+            <div
+              className="
+                relative
+                shrink-0
+                max-[600px]:flex-1
+              "
+            >
+              <label
+                className="
+                  absolute
+                  -top-2
+                  right-2
+                  z-10
+                  bg-white
+                  px-1
+                  text-[9px]
+                  text-slate-500
+                "
+              >
+                من التاريخ
+              </label>
+
+              <input
+                type="date"
+                className="
+                  h-10
+                  w-[135px]
+                  rounded-lg
+                  border
+                  border-slate-200
+                  bg-white
+                  px-3
+                  text-[11px]
+                  text-slate-500
+                  outline-none
+                  focus:border-blue-400
+                  max-[600px]:w-full
+                "
+              />
+            </div>
+
+            {/* TO DATE */}
+
+            <div
+              className="
+                relative
+                shrink-0
+                max-[600px]:flex-1
+              "
+            >
+              <label
+                className="
+                  absolute
+                  -top-2
+                  right-2
+                  z-10
+                  bg-white
+                  px-1
+                  text-[9px]
+                  text-slate-500
+                "
+              >
+                إلى التاريخ
+              </label>
+
+              <input
+                type="date"
+                className="
+                  h-10
+                  w-[135px]
+                  rounded-lg
+                  border
+                  border-slate-200
+                  bg-white
+                  px-3
+                  text-[11px]
+                  text-slate-500
+                  outline-none
+                  focus:border-blue-400
+                  max-[600px]:w-full
+                "
+              />
+            </div>
+
+        {/* <div
           className="
             relative
             shrink-0
@@ -187,7 +273,7 @@ export default function VideoSearchCard({
               focus:border-blue-400
             "
           />
-        </div>
+        </div> */}
       </div>
     </section>
   );

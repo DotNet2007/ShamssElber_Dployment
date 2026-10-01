@@ -23,6 +23,8 @@ export const videosApi = createApi({
     },
   }),
 
+  tagTypes: ["Videos"],
+
   endpoints: (builder) => ({
 
     // ==============================
@@ -34,6 +36,9 @@ export const videosApi = createApi({
         method: "POST",
         body: formData,
       }),
+
+      invalidatesTags: ["Videos"],
+
     }),
 
     // ==============================
@@ -44,6 +49,9 @@ export const videosApi = createApi({
         url: "/api/videos",
         method: "GET",
       }),
+
+      providesTags: ["Videos"],
+
     }),
 
     /* =====================================================
@@ -56,6 +64,9 @@ export const videosApi = createApi({
         url: "/api/videos/my",
         method: "GET",
       }),
+
+      providesTags: ["Videos"],
+
     }),
 
     getVideoByCode: builder.query<any, number>({
@@ -63,6 +74,14 @@ export const videosApi = createApi({
         url: `/api/videos/${code}`,
         method: "GET",
       }),
+
+      providesTags: (_result, _error, code) => [
+        {
+          type: "Videos",
+          id: code,
+        },
+      ],
+
     }),
 
     updateVideo: builder.mutation<any, { code: number; formData: FormData }>({
@@ -71,6 +90,42 @@ export const videosApi = createApi({
         method: "PUT",
         body: formData,
       }),
+
+      invalidatesTags: (_result, _error, { code }) => [
+        "Videos",
+        {
+          type: "Videos",
+          id: code,
+        },
+      ],
+
+    }),
+
+    submitVideo: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/videos/${code}/submit`,
+        method: "POST",
+      }),
+
+      invalidatesTags: (_result, _error, code) => [
+        "Videos",
+        {
+          type: "Videos",
+          id: code,
+        },
+      ],
+
+    }),
+
+    deleteVideo: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/videos/${code}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (_result, _error, code) => [
+        "Videos",
+        { type: "Videos", id: code },
+      ],
     }),
 
 
@@ -82,5 +137,7 @@ export const {
   useGetAllVideosQuery,
   useGetMyVideosQuery,
   useGetVideoByCodeQuery,
-  useUpdateVideoMutation
+  useUpdateVideoMutation,
+  useSubmitVideoMutation,
+  useDeleteVideoMutation
 } = videosApi;

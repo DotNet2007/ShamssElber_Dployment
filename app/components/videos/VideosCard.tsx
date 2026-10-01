@@ -567,7 +567,7 @@ function VideoItemCard({
         bg-white
         transition-all
         duration-200
-        hover:-translate-y-0.5
+        
         hover:border-slate-300
         hover:shadow-[0_8px_25px_rgba(15,23,42,0.07)]
       "
@@ -598,7 +598,7 @@ function VideoItemCard({
               object-cover
               transition-transform
               duration-300
-              group-hover:scale-105
+              
             "
           />
         ) : (
