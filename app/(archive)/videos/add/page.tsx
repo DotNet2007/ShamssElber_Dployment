@@ -28,20 +28,72 @@ import {
   Video,
   Workflow,
   X,
+    Grid3X3,
+  Grid2X2,
+  Rows3,
 } from "lucide-react";
 
-// lpjj
 
 import {
   formatDuration,
   formatFileSize,
 } from "@/app/helpers/videoHelper";
-import { useGetEventsQuery, useGetEventTypesQuery, useGetItemTypesQuery, useGetProdLinesQuery, useGetProductEntityOneQuery, useGetProductEntityTwoQuery, useGetSectorsQuery, useGetSongsQuery, useGetSpeakersQuery } from "@/app/services/sectors-api";
+import { useGetContentTypesQuery, useGetEventsQuery, useGetEventTypesQuery, useGetItemsQuery, useGetItemTypesQuery, useGetProdLinesQuery, useGetProductEntityOneQuery, useGetProductEntityTwoQuery, useGetSectorsQuery, useGetSongsQuery, useGetSpeakersQuery } from "@/app/services/sectors-api";
 import { useCreateVideoMutation } from "@/app/services/videos-api";
+import { getCurrentDateTime } from "@/app/helpers/getCurentDate";
+import { getArabicDayName } from "@/app/helpers/getArabicDayName";
+import { jwtDecode } from "jwt-decode";
 
 export default function AddVideoPage() {
   const videoInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
+
+  const getIsAdminFromToken = (): boolean => {
+    try {
+      const token = localStorage.getItem("userToken");
+  
+      if (!token) return false;
+  
+      const decoded: any = jwtDecode(token);
+  
+      return (
+        decoded?.isAdmin === true ||
+        decoded?.isAdmin === "Y" ||
+        decoded?.role === "ADMIN"
+      );
+    } catch {
+      return false;
+    }
+  };
+  
+  const getCurrentUserIdFromToken = (): number | null => {
+    try {
+      const token = localStorage.getItem("userToken");
+  
+      if (!token) return null;
+  
+      const decoded: any = jwtDecode(token);
+  
+      if (decoded?.id == null) return null;
+  
+      const id = Number(decoded.id);
+  
+      return Number.isFinite(id) ? id : null;
+    } catch {
+      return null;
+    }
+  };
+
+ 
+
+  const [formLayout, setFormLayout] = useState<"grid3" | "grid2" | "full">("grid3");
+  const [date, setDate] = useState(getCurrentDateTime());
+
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  const openDatePicker = () => {
+    dateInputRef.current?.showPicker();
+  };
 
   // ==================================================
   // VIDEO
@@ -77,7 +129,7 @@ export default function AddVideoPage() {
   // ==================================================
 
   const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
+  // const [date, setDate] = useState("");
 
   // ==================================================
   // PRODUCTION
@@ -93,11 +145,15 @@ export default function AddVideoPage() {
   const [sector, setSector] = useState("");
   const [translation, setTranslation] = useState("");
 
+  // const [isAdmin, setIsAdmin] = useState(false);
+  const [contentType, setContentType] = useState("");
+
+   const isAdmin = getIsAdminFromToken();
   // ==================================================
   // PRODUCT
   // ==================================================
 
-  const { data: items = [], isLoading: itemsIsLoading, refetch: refetchItems, isFetching: itemsIsFetching, isError: itemsIsError } = useGetItemTypesQuery();
+  const { data: itemsType = [], isLoading: itemsTypeIsLoading, refetch: refetchItemsType, isFetching: itemsTypeIsFetching, isError: itemsTypeIsError } = useGetItemTypesQuery();
   const { data: eventTypes = [], isLoading: eventTypesIsLoading, refetch: refetchEventTypes, isFetching: eventTypesIsFetching, isError: eventTypesIsError } = useGetEventTypesQuery();
   const { data: productionLines = [], isLoading: productionLinesIsLoading, refetch: refetchProductionLines, isFetching: productionLinesIsFetching, isError: productionLinesIsError } = useGetProdLinesQuery();
   
@@ -109,9 +165,15 @@ export default function AddVideoPage() {
   const { data: speakers = [], isLoading: speakersIsLoading, refetch: refetchSpeakers, isFetching: speakersIsFetching, isError: speakersIsError } = useGetSpeakersQuery();
   const { data: events = [], isLoading: eventsIsLoading, refetch: refetchEvents, isFetching: eventsIsFetching, isError: eventsIsError } = useGetEventsQuery();
 
+  const { data: items = [], isLoading: itemsIsLoading, refetch: refetchItems, isFetching: itemsIsFetching, isError: itemsIsError } = useGetItemsQuery();
+
+  const { data: contentTypes = [], isLoading: contentTypesIsLoading } = useGetContentTypesQuery(undefined, { skip: !isAdmin });
+
   const [ createVideo, { isLoading: isSaving } ] = useCreateVideoMutation();
 
   const [productType, setProductType] = useState("");
+
+  const [item, setItem] = useState("");
 
   const [productName, setProductName] = useState("");
   const [productSerial, setProductSerial] = useState("");
@@ -160,6 +222,22 @@ export default function AddVideoPage() {
 
 
 
+  useEffect(() => {
+    const saved = localStorage.getItem("video-form-layout");
+
+    if (
+      saved === "grid3" ||
+      saved === "grid2" ||
+      saved === "full"
+    ) {
+      setFormLayout(saved);
+    }
+  }, []);
+
+  const changeFormLayout = (layout: "grid3" | "grid2" | "full") => {
+    setFormLayout(layout);
+    localStorage.setItem("video-form-layout", layout);
+  };
 
 
   // ==================================================
@@ -300,7 +378,7 @@ export default function AddVideoPage() {
 
   const handleRefresh = () => {
     setTitle("");
-    setDate("");
+    // setDate("");
 
     setProduction1("");
     setProduction2("");
@@ -343,110 +421,7 @@ export default function AddVideoPage() {
     handleRemoveThumbnail();
   };
 
-  // ==================================================
-  // SAVE
-  // ==================================================
 
-  // const handleSave = () => {
-  //   setError("");
-
-  //   if (!date) {
-  //     setError("من فضلك أدخل التاريخ.");
-  //     return;
-  //   }
-
-  //   if (!title.trim()) {
-  //     setError("من فضلك أدخل الصنف.");
-  //     return;
-  //   }
-
-  //   if (!productName.trim()) {
-  //     setError("من فضلك أدخل اسم المنتج.");
-  //     return;
-  //   }
-
-  //   if (!productSerial.trim()) {
-  //     setError("من فضلك أدخل تسلسل المنتج.");
-  //     return;
-  //   }
-
-  //   if (!videoFile) {
-  //     setError("من فضلك اختر ملف الفيديو.");
-  //     return;
-  //   }
-
-  //   console.log({
-  //     // 1
-  //     date,
-
-  //     // 2
-  //     title,
-
-  //     // 3
-  //     production1,
-
-  //     // 4
-  //     production2,
-
-  //     // 5
-  //     sector,
-
-  //     // 6
-  //     translation,
-
-  //     // 7
-  //     productType,
-
-  //     // 8
-  //     eventType,
-
-  //     // 9
-  //     productionLine,
-
-  //     // 10
-  //     productName,
-
-  //     // 11
-  //     productSerial,
-
-  //     // 12
-  //     eventName,
-
-  //     // 13
-  //     hymnName,
-
-  //     // 14
-  //     speakerName,
-
-  //     // Repeated
-  //     isRepeated,
-  //     repeatType,
-
-  //     // Upload channels
-  //     mainUploadChannel,
-  //     youtubeLink,
-  //     facebookLink,
-  //     instagramLink,
-
-  //     // Product content
-  //     content1,
-  //     content2,
-  //     content3,
-  //     content4,
-  //     content5,
-
-  //     // Video
-  //     duration: videoDuration,
-  //     description,
-  //     notes,
-  //     videoFile,
-
-  //     // Images
-  //     thumbnailFile,
-  //   });
-
-  //   alert("تم تجهيز بيانات الفيديو للحفظ.");
-  // };
 
   // ==================================================
 // SAVE VIDEO
@@ -461,14 +436,14 @@ export default function AddVideoPage() {
     // VALIDATION
     // ==================================================
 
-    if (!date) {
+    // if (!date) {
 
-      setError(
-        "من فضلك أدخل التاريخ."
-      );
+    //   setError(
+    //     "من فضلك أدخل التاريخ."
+    //   );
 
-      return;
-    }
+    //   return;
+    // }
 
 
     if (!title.trim()) {
@@ -1050,12 +1025,14 @@ export default function AddVideoPage() {
             max-[600px]:px-4
           "
         >
-          <div className="flex items-center gap-3">
+          {/* Left side: Video icon + title */}
+          <div className="flex items-center gap-3 flex-1">
             <div
               className="
                 flex
                 h-[38px]
                 w-[38px]
+                shrink-0
                 items-center
                 justify-center
                 rounded-[10px]
@@ -1076,34 +1053,113 @@ export default function AddVideoPage() {
               </span>
             </div>
           </div>
+
+          {/* Right side: Layout Options */}
+          <div className="hidden md:flex items-center gap-1 shrink-0">
+            {/* 3 Columns */}
+            <button
+              type="button"
+              onClick={() => changeFormLayout("grid3")}
+              title="ثلاثة أعمدة"
+              className={`p-1.5 rounded-md transition ${
+                formLayout === "grid3"
+                  ? "bg-[#EEF4FF] text-[#2563EB]"
+                  : "text-[#718096] hover:bg-[#F5F7FA] hover:text-[#2563EB]"
+              }`}
+            >
+              <Grid3X3 size={17} />
+            </button>
+
+            {/* 2 Columns */}
+            <button
+              type="button"
+              onClick={() => changeFormLayout("grid2")}
+              title="عمودين"
+              className={`p-1.5 rounded-md transition ${
+                formLayout === "grid2"
+                  ? "bg-[#EEF4FF] text-[#2563EB]"
+                  : "text-[#718096] hover:bg-[#F5F7FA] hover:text-[#2563EB]"
+              }`}
+            >
+              <Grid2X2 size={17} />
+            </button>
+
+            {/* Full Width */}
+            <button
+              type="button"
+              onClick={() => changeFormLayout("full")}
+              title="عرض كامل"
+              className={`p-1.5 rounded-md transition ${
+                formLayout === "full"
+                  ? "bg-[#EEF4FF] text-[#2563EB]"
+                  : "text-[#718096] hover:bg-[#F5F7FA] hover:text-[#2563EB]"
+              }`}
+            >
+              <Rows3 size={17} />
+            </button>
+          </div>
         </div>
 
         {/* BODY */}
 
         <div className="p-[25px] max-[600px]:p-4">
           <div
-            className="
-              grid
-              grid-cols-3
-              gap-5
-              max-[900px]:grid-cols-2
-              max-[600px]:grid-cols-1
-            "
-          >
+           className={`
+            grid gap-5
+            ${
+              formLayout === "grid3"
+                ? "grid-cols-3 max-[900px]:grid-cols-2 max-[600px]:grid-cols-1"
+                : formLayout === "grid2"
+                ? "grid-cols-2 max-[600px]:grid-cols-1"
+                : "grid-cols-1"
+            }
+          `}>
             {/* ==================================================
                 1. التاريخ
                 ================================================== */}
 
             <FormGroup label="التاريخ">
               <InputWrapper icon={<Calendar size={16} />}>
-                <input
-                  type="datetime-local"
-                  value={date}
-                  onChange={(e) =>
-                    setDate(e.target.value)
-                  }
-                  className={inputClass}
-                />
+                <div
+                  className={`${inputClass} relative w-full cursor-pointer`}
+                  onClick={openDatePicker}
+                >
+                  {/* Arabic value */}
+                  <div
+                    className="
+                      pointer-events-none
+                      flex
+                      h-full
+                      w-full
+                      items-center
+                      overflow-hidden
+                      whitespace-nowrap
+                      text-[13px]
+                      text-[#172033]
+                    "
+                  >
+                    {date ?
+                      getArabicDayName(date)
+                      : "اختر التاريخ"}
+                  </div>
+
+                  {/* Native picker */}
+                  <input
+                    ref={dateInputRef}
+                    type="datetime-local"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="
+                      absolute
+                      inset-0
+                      h-full
+                      w-full
+                      cursor-pointer
+                      opacity-0
+                    "
+                    tabIndex={-1}
+                  />
+                </div>
               </InputWrapper>
             </FormGroup>
 
@@ -1112,18 +1168,35 @@ export default function AddVideoPage() {
                 ================================================== */}
 
             <FormGroup label="الصنف">
-              <InputWrapper icon={<Folder size={16} />}>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) =>
-                    setTitle(e.target.value)
-                  }
-                  placeholder="أدخل الصنف"
-                  className={inputClass}
-                />
-              </InputWrapper>
+              <SelectWrapper
+                isAdmin={isAdmin}
+                icon={<Folder size={16} />}
+                onAdd={() => console.log("إختر الصنف")}
+              >
+                <select
+                  value={item}
+                  onChange={(e) => setProduction1(e.target.value)}
+                  className={selectClass}
+                  disabled={itemsIsLoading}
+                >
+                  <option value="">
+                    {itemsIsLoading
+                      ? "جاري تحميل الاصناف ..."
+                      : "اختر الصنف"}
+                  </option>
+
+                  {items.map((item: any) => (
+                    <option
+                      key={item.Code}
+                      value={item.Code}
+                    >
+                      {item.DescA}
+                    </option>
+                  ))}
+                </select>
+              </SelectWrapper>
             </FormGroup>
+
 
             {/* ==================================================
                 3. جهة انتاج 1
@@ -1131,6 +1204,7 @@ export default function AddVideoPage() {
 
             <FormGroup label="جهة انتاج 1">
               <SelectWrapper
+                isAdmin={isAdmin}
                 icon={<Building2 size={16} />}
                 onAdd={() => console.log("إضافة جهة إنتاج 1")}
               >
@@ -1164,6 +1238,7 @@ export default function AddVideoPage() {
 
             <FormGroup label="جهة انتاج 2">
               <SelectWrapper
+                isAdmin={isAdmin}
                 icon={<Building2 size={16} />}
                 onAdd={() => console.log("إضافة جهة إنتاج 2")}
               >
@@ -1198,6 +1273,7 @@ export default function AddVideoPage() {
 
             <FormGroup label="القطاع">
               <SelectWrapper
+                isAdmin={isAdmin}
                 icon={<Layers size={16} />}
                 onAdd={() => console.log("إضافة قطاع")}
               >
@@ -1255,6 +1331,7 @@ export default function AddVideoPage() {
 
             <FormGroup label="نوع المنتج">
               <SelectWrapper
+                isAdmin={isAdmin}
                 icon={<Package size={16} />}
                 onAdd={() => console.log("إضافة نوع منتج")}
               >
@@ -1262,20 +1339,20 @@ export default function AddVideoPage() {
                   value={productType}
                   onChange={(e) => setProductType(e.target.value)}
                   className={selectClass}
-                  disabled={itemsIsLoading}
+                  disabled={itemsTypeIsLoading}
                 >
                   <option value="">
-                    {itemsIsLoading
+                    {itemsTypeIsLoading
                       ? "جاري تحميل أنواع المنتجات..."
                       : "اختر نوع المنتج"}
                   </option>
 
-                  {items.map((item: any) => (
+                  {itemsType.map((itemType: any) => (
                     <option
-                      key={item.Code}
-                      value={item.Code}
+                      key={itemType.Code}
+                      value={itemType.Code}
                     >
-                      {item.DescA}
+                      {itemType.DescA}
                     </option>
                   ))}
                 </select>
@@ -1288,6 +1365,7 @@ export default function AddVideoPage() {
 
             <FormGroup label="نوع الحدث">
               <SelectWrapper
+                isAdmin={isAdmin}
                 icon={<CalendarDays size={16} />}
                 onAdd={() => console.log("إضافة نوع حدث")}
               >
@@ -1321,6 +1399,7 @@ export default function AddVideoPage() {
 
             <FormGroup label="خط الانتاج">
               <SelectWrapper
+                isAdmin={isAdmin}
                 icon={<Workflow size={16} />}
                 onAdd={() => console.log("إضافة خط إنتاج")}
               >
@@ -1571,6 +1650,7 @@ export default function AddVideoPage() {
 
             <FormGroup label="اسم الترنيمه">
               <SelectWrapper
+                isAdmin={isAdmin}
                 icon={<Music2 size={16} />}
                 onAdd={() => console.log("إضافة ترنيمة")}
               >
@@ -1605,6 +1685,7 @@ export default function AddVideoPage() {
 
             <FormGroup label="اسم المتكلم">
               <SelectWrapper
+                isAdmin={isAdmin}
                 icon={<User size={16} />}
                 onAdd={() => console.log("إضافة متكلم")}
               >
@@ -1634,6 +1715,36 @@ export default function AddVideoPage() {
               </SelectWrapper>
             </FormGroup>
 
+            {isAdmin && (
+              <FormGroup label="نوع المحتوى">
+                <SelectWrapper
+                  icon={<Layers size={16} />}
+                >
+                  <select
+                    value={contentType}
+                    onChange={(e) => setContentType(e.target.value)}
+                    className={selectClass}
+                    disabled={contentTypesIsLoading}
+                  >
+                    <option value="">
+                      {contentTypesIsLoading
+                        ? "جاري تحميل أنواع المحتوى..."
+                        : "اختر نوع المحتوى"}
+                    </option>
+
+                    {contentTypes.map((contentType: any) => (
+                      <option
+                        key={contentType.Code}
+                        value={contentType.Code}
+                      >
+                        {contentType.DescA}
+                      </option>
+                    ))}
+                  </select>
+                </SelectWrapper>
+              </FormGroup>
+            )}
+
           </div>
 
           
@@ -1651,6 +1762,7 @@ export default function AddVideoPage() {
 
               <FormGroup label="قناة / صفحة الرفع الرئيسية">
                 <SelectWrapper
+                  isAdmin={isAdmin}
                   icon={<Video size={16} />}
                   onAdd={() => console.log("إضافة قناة رفع")}
                 >
@@ -2176,64 +2288,7 @@ export default function AddVideoPage() {
             </div>
           )}
 
-          {!videoFile && (
-            <button
-              type="button"
-              onClick={() =>
-                videoInputRef.current?.click()
-              }
-              className="
-                mt-4
-                flex
-                min-h-[64px]
-                w-full
-                items-center
-                gap-3.5
-                rounded-[10px]
-                border
-                border-dashed
-                border-[#cbd5e1]
-                bg-[#f8fafc]
-                px-[18px]
-                py-3
-                text-right
-                transition
-                hover:border-blue-400
-                hover:bg-[#eff6ff]
-              "
-            >
-              <div
-                className="
-                  flex
-                  h-[38px]
-                  w-[38px]
-                  shrink-0
-                  items-center
-                  justify-center
-                  rounded-lg
-                  bg-[#dbeafe]
-                  text-[#2563eb]
-                "
-              >
-                <Plus size={20} />
-              </div>
-
-              <div className="flex flex-1 flex-col gap-[3px]">
-                <div className="text-sm font-bold text-[#1e293b]">
-                  إضافة ملف فيديو
-                </div>
-
-                <div className="text-xs text-[#64748b]">
-                  اضغط هنا لاختيار فيديو من جهازك
-                </div>
-              </div>
-
-              <ArrowRight
-                size={18}
-                className="text-[#94a3b8]"
-              />
-            </button>
-          )}
+          
         </div>
       </section>
 
@@ -2467,14 +2522,76 @@ function InputWrapper({
 // SELECT WRAPPER
 // ==================================================
 
+// function SelectWrapper({
+//   icon,
+//   children,
+//   onAdd,
+// }: {
+//   icon: React.ReactNode;
+//   children: React.ReactNode;
+//   onAdd?: () => void;
+// }) {
+//   return (
+//     <div className="flex w-full items-center gap-2">
+//       <div className="relative min-w-0 flex-1">
+//         <span
+//           className="
+//             pointer-events-none absolute right-3 top-1/2 z-10
+//             flex -translate-y-1/2 items-center justify-center
+//             text-[#a0aec0]
+//           "
+//         >
+//           {icon}
+//         </span>
+
+//         <span
+//           className="
+//             pointer-events-none absolute left-3 top-1/2 z-10
+//             flex -translate-y-1/2 items-center justify-center
+//             text-[#718096]
+//           "
+//         >
+//           <ChevronDown size={16} strokeWidth={2} />
+//         </span>
+
+//         {children}
+//       </div>
+
+//       <button
+//         type="button"
+//         title="إضافة"
+//         aria-label="إضافة"
+//         onClick={onAdd}
+//         className="
+//           flex h-11 w-11 shrink-0 items-center justify-center
+//           rounded-[9px] border border-[#dfe5ed] bg-white
+//           text-[#718096] transition-all duration-200
+//           hover:border-[#2563eb] hover:bg-[#eff6ff] hover:text-[#2563eb]
+//           active:scale-95
+//         "
+//       >
+//         <Plus size={18} strokeWidth={2} />
+//       </button>
+//     </div>
+//   );
+// }
+
+// ==================================================
+// SELECT WRAPPER
+// ==================================================
+
 function SelectWrapper({
   icon,
   children,
   onAdd,
+  disabled = false,
+  isAdmin = false,
 }: {
   icon: React.ReactNode;
   children: React.ReactNode;
   onAdd?: () => void;
+  disabled?: boolean;
+  isAdmin?: boolean;
 }) {
   return (
     <div className="flex w-full items-center gap-2">
@@ -2502,21 +2619,29 @@ function SelectWrapper({
         {children}
       </div>
 
-      <button
-        type="button"
-        title="إضافة"
-        aria-label="إضافة"
-        onClick={onAdd}
-        className="
-          flex h-11 w-11 shrink-0 items-center justify-center
-          rounded-[9px] border border-[#dfe5ed] bg-white
-          text-[#718096] transition-all duration-200
-          hover:border-[#2563eb] hover:bg-[#eff6ff] hover:text-[#2563eb]
-          active:scale-95
-        "
-      >
-        <Plus size={18} strokeWidth={2} />
-      </button>
+      {/* + يظهر للـ Admin فقط */}
+      {isAdmin && (
+        <button
+          type="button"
+          title="إضافة"
+          aria-label="إضافة"
+          onClick={onAdd}
+          disabled={disabled}
+          className="
+            flex h-11 w-11 shrink-0 items-center justify-center
+            rounded-[9px] border border-[#dfe5ed] bg-white
+            text-[#718096] transition-all duration-200
+            hover:border-[#2563eb]
+            hover:bg-[#eff6ff]
+            hover:text-[#2563eb]
+            active:scale-95
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+          "
+        >
+          <Plus size={18} strokeWidth={2} />
+        </button>
+      )}
     </div>
   );
 }

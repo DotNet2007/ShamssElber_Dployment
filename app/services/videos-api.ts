@@ -1,27 +1,30 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithAuthHandling } from "./baseQuery";
 
 export const videosApi = createApi({
   reducerPath: "videosApi",
 
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL,
+  baseQuery: baseQueryWithAuthHandling,
 
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem("userToken");
+  // baseQuery: fetchBaseQuery({
+  //   baseUrl: process.env.NEXT_PUBLIC_API_URL,
 
-      if (token) {
-        headers.set(
-          "Authorization",
-          `Bearer ${token}`
-        );
-      }
+  //   prepareHeaders: (headers) => {
+  //     const token = localStorage.getItem("userToken");
 
-      // Do NOT set Content-Type here.
-      // FormData will set multipart/form-data automatically.
+  //     if (token) {
+  //       headers.set(
+  //         "Authorization",
+  //         `Bearer ${token}`
+  //       );
+  //     }
 
-      return headers;
-    },
-  }),
+  //     // Do NOT set Content-Type here.
+  //     // FormData will set multipart/form-data automatically.
+
+  //     return headers;
+  //   },
+  // }),
 
   tagTypes: ["Videos"],
 
@@ -44,10 +47,11 @@ export const videosApi = createApi({
     // ==============================
     // GET ALL VIDEOS
     // ==============================
-    getAllVideos: builder.query<any, void>({
-      query: () => ({
+    getAllVideos: builder.query<any, { page?: number; limit?: number; search?: string, dateFrom?: string; dateTo?: string; }>({
+      query: ({ page = 1, limit = 20, search = "", dateFrom = "", dateTo = "" }) => ({
         url: "/api/videos",
         method: "GET",
+        params: { page, limit, search, dateFrom , dateTo },
       }),
 
       providesTags: ["Videos"],
@@ -58,16 +62,18 @@ export const videosApi = createApi({
     GET MY VIDEOS
     GET /api/videos/my
     ===================================================== */
-
-    getMyVideos: builder.query<any, void>({
-      query: () => ({
+    getMyVideos: builder.query<any, { page?: number; limit?: number; search?: string, dateFrom?: string; dateTo?: string; }>({
+      query: ({ page = 1, limit = 20, search = "", dateFrom = "", dateTo = "" }) => ({
         url: "/api/videos/my",
         method: "GET",
+        params: { page, limit, search, dateFrom , dateTo },
       }),
 
       providesTags: ["Videos"],
 
     }),
+
+    
 
     getVideoByCode: builder.query<any, number>({
       query: (code) => ({

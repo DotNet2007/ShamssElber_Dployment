@@ -10,6 +10,13 @@ import {
 type VideoSearchCardProps = {
   search?: string;
   onSearchChange?: (value: string) => void;
+
+  dateFrom?: string;
+  dateTo?: string;
+
+  onDateFromChange?: (value: string) => void;
+  onDateToChange?: (value: string) => void;
+
   onFilter?: () => void;
   onClear?: () => void;
 };
@@ -17,6 +24,10 @@ type VideoSearchCardProps = {
 export default function VideoSearchCard({
   search = "",
   onSearchChange,
+  dateFrom = "",
+  dateTo = "",
+  onDateFromChange,
+  onDateToChange,
   onFilter,
   onClear,
 }: VideoSearchCardProps) {

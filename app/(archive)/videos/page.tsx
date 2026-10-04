@@ -35,6 +35,23 @@ export default function VideosPage() {
     useState<"all" | "mine">("all");
 
   /* =========================================================
+     SEARCH
+     ========================================================= */
+
+  const [searchText, setSearchText] =
+    useState("");
+
+  /* =========================================================
+     DATE FILTER
+     ========================================================= */
+
+  const [dateFrom, setDateFrom] =
+    useState("");
+
+  const [dateTo, setDateTo] =
+    useState("");
+
+  /* =========================================================
      PAGINATION
      ========================================================= */
 
@@ -49,11 +66,33 @@ export default function VideosPage() {
 
   const {
     data: allVideosData,
+
     isLoading: isLoadingAll,
+
+    isFetching: isFetchingAll,
+
     isError: isAllError,
+
     error: allError,
+
     refetch: refetchAll,
-  } = useGetAllVideosQuery();
+
+  } = useGetAllVideosQuery(
+    {
+      page: currentPage,
+
+      limit: itemsPerPage,
+
+      search: searchText,
+
+      dateFrom,
+
+      dateTo,
+    },
+    {
+      skip: activeFilter !== "all",
+    }
+  );
 
   /* =========================================================
      GET MY VIDEOS
@@ -61,11 +100,33 @@ export default function VideosPage() {
 
   const {
     data: myVideosData,
+
     isLoading: isLoadingMy,
+
+    isFetching: isFetchingMy,
+
     isError: isMyError,
+
     error: myError,
+
     refetch: refetchMy,
-  } = useGetMyVideosQuery();
+
+  } = useGetMyVideosQuery(
+    {
+      page: currentPage,
+
+      limit: itemsPerPage,
+
+      search: searchText,
+
+      dateFrom,
+
+      dateTo,
+    },
+    {
+      skip: activeFilter !== "mine",
+    }
+  );
 
   /* =========================================================
      API DATA
@@ -90,26 +151,19 @@ export default function VideosPage() {
      PAGINATION DATA
      ========================================================= */
 
+  const pagination =
+    allVideosData?.pagination;
+
+  /*
+   * All Videos
+   *
+   * Pagination is handled by backend.
+   */
+
   const totalItems =
-    displayedVideos.length;
-
-  const startIndex =
-    (currentPage - 1) * itemsPerPage;
-
-  const paginatedVideos =
-    displayedVideos.slice(
-      startIndex,
-      startIndex + itemsPerPage
-    );
-
-  /* =========================================================
-     VIEW VIDEO
-     ========================================================= */
-
-  const handleViewVideo = (video: any) => {
-    setSelectedVideo(video);
-    setShowVideoModal(true);
-  };
+    activeFilter === "all"
+      ? pagination?.total ?? 0
+      : myVideos.length;
 
   /* =========================================================
      LOADING
@@ -119,6 +173,11 @@ export default function VideosPage() {
     activeFilter === "all"
       ? isLoadingAll
       : isLoadingMy;
+
+  const isFetching =
+    activeFilter === "all"
+      ? isFetchingAll
+      : isFetchingMy;
 
   /* =========================================================
      ERROR
@@ -133,6 +192,87 @@ export default function VideosPage() {
     activeFilter === "all"
       ? allError
       : myError;
+
+  /* =========================================================
+     SEARCH
+     ========================================================= */
+
+  const handleSearch = (
+    value: string
+  ) => {
+    setSearchText(value);
+
+    // Search starts from first page
+    setCurrentPage(1);
+  };
+
+  /* =========================================================
+     DATE FROM
+     ========================================================= */
+
+  const handleDateFromChange = (
+    value: string
+  ) => {
+    setDateFrom(value);
+
+    // New filter starts from first page
+    setCurrentPage(1);
+  };
+
+  /* =========================================================
+     DATE TO
+     ========================================================= */
+
+  const handleDateToChange = (
+    value: string
+  ) => {
+    setDateTo(value);
+
+    // New filter starts from first page
+    setCurrentPage(1);
+  };
+
+  /* =========================================================
+     CLEAR SEARCH / FILTERS
+     ========================================================= */
+
+  const handleClear = () => {
+    setSearchText("");
+
+    setDateFrom("");
+
+    setDateTo("");
+
+    setCurrentPage(1);
+  };
+
+  /* =========================================================
+     CHANGE ACTIVE FILTER
+     ========================================================= */
+
+  const handleAllVideos = () => {
+    setActiveFilter("all");
+
+    setCurrentPage(1);
+  };
+
+  const handleMyVideos = () => {
+    setActiveFilter("mine");
+
+    setCurrentPage(1);
+  };
+
+  /* =========================================================
+     VIEW VIDEO
+     ========================================================= */
+
+  const handleViewVideo = (
+    video: any
+  ) => {
+    setSelectedVideo(video);
+
+    setShowVideoModal(true);
+  };
 
   /* =========================================================
      LOADING SCREEN
@@ -155,7 +295,33 @@ export default function VideosPage() {
       >
         <VideoHeader />
 
-        <VideoSearchCard />
+        <VideoSearchCard
+          search={searchText}
+
+          onSearchChange={
+            handleSearch
+          }
+
+          dateFrom={dateFrom}
+
+          dateTo={dateTo}
+
+          onDateFromChange={
+            handleDateFromChange
+          }
+
+          onDateToChange={
+            handleDateToChange
+          }
+
+          onClear={
+            handleClear
+          }
+
+          onFilter={() => {
+            // Filter panel will be added later
+          }}
+        />
 
         <div
           className="
@@ -179,11 +345,6 @@ export default function VideosPage() {
      ========================================================= */
 
   if (hasError) {
-    console.error(
-      "Get videos error:",
-      currentError
-    );
-
     return (
       <main
         dir="rtl"
@@ -200,7 +361,33 @@ export default function VideosPage() {
       >
         <VideoHeader />
 
-        <VideoSearchCard />
+        <VideoSearchCard
+          search={searchText}
+
+          onSearchChange={
+            handleSearch
+          }
+
+          dateFrom={dateFrom}
+
+          dateTo={dateTo}
+
+          onDateFromChange={
+            handleDateFromChange
+          }
+
+          onDateToChange={
+            handleDateToChange
+          }
+
+          onClear={
+            handleClear
+          }
+
+          onFilter={() => {
+            // Filter panel will be added later
+          }}
+        />
 
         <div
           className="
@@ -220,7 +407,9 @@ export default function VideosPage() {
           <button
             type="button"
             onClick={() => {
-              if (activeFilter === "all") {
+              if (
+                activeFilter === "all"
+              ) {
                 refetchAll();
               } else {
                 refetchMy();
@@ -272,30 +461,57 @@ export default function VideosPage() {
           SEARCH
           ===================================================== */}
 
-      <VideoSearchCard />
+      <VideoSearchCard
+        search={searchText}
+
+        onSearchChange={
+          handleSearch
+        }
+
+        dateFrom={dateFrom}
+
+        dateTo={dateTo}
+
+        onDateFromChange={
+          handleDateFromChange
+        }
+
+        onDateToChange={
+          handleDateToChange
+        }
+
+        onClear={
+          handleClear
+        }
+
+        onFilter={() => {
+          // Filter panel will be added later
+        }}
+      />
 
       {/* =====================================================
           VIDEOS
           ===================================================== */}
 
       <div className="mt-6 w-full">
+
         <VideosCard
-          videos={paginatedVideos}
+          videos={displayedVideos}
 
           activeFilter={activeFilter}
 
-          onAllVideos={() => {
-            setActiveFilter("all");
-            setCurrentPage(1);
-          }}
+          onAllVideos={
+            handleAllVideos
+          }
 
-          onMyVideos={() => {
-            setActiveFilter("mine");
-            setCurrentPage(1);
-          }}
+          onMyVideos={
+            handleMyVideos
+          }
 
           onAddVideo={() => {
-            console.log("Add video");
+            router.push(
+              "/videos/add"
+            );
           }}
 
           onView={(video) => {
@@ -320,19 +536,48 @@ export default function VideosPage() {
         />
 
         {/* ===================================================
+            FETCHING
+            =================================================== */}
+
+        {isFetching && !isLoading && (
+          <div
+            className="
+              mt-3
+              text-center
+              text-xs
+              text-gray-400
+            "
+          >
+            جاري تحديث النتائج...
+          </div>
+        )}
+
+        {/* ===================================================
             PAGINATION
             =================================================== */}
 
         {totalItems > 0 && (
           <Pagination
-            currentPage={currentPage}
-            totalItems={totalItems}
-            itemsPerPage={itemsPerPage}
-            onPageChange={(page) => {
+            currentPage={
+              currentPage
+            }
+
+            totalItems={
+              totalItems
+            }
+
+            itemsPerPage={
+              itemsPerPage
+            }
+
+            onPageChange={(
+              page
+            ) => {
               setCurrentPage(page);
             }}
           />
         )}
+
       </div>
 
       {/* =====================================================
@@ -340,13 +585,25 @@ export default function VideosPage() {
           ===================================================== */}
 
       <VideoPlayerModal
-        open={showVideoModal}
-        video={selectedVideo}
+        open={
+          showVideoModal
+        }
+
+        video={
+          selectedVideo
+        }
+
         onClose={() => {
-          setShowVideoModal(false);
-          setSelectedVideo(null);
+          setShowVideoModal(
+            false
+          );
+
+          setSelectedVideo(
+            null
+          );
         }}
       />
+
     </main>
   );
 }

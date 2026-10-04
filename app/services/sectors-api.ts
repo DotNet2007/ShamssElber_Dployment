@@ -98,6 +98,25 @@ export const videosDropdownAPI = createApi({
     getSpeakers: builder.query<any[], void>({
       query: () => "/api/dropdown/speakers",
     }),
+
+
+    // =====================================================
+    // ITEMS
+    // =====================================================
+
+    getItems: builder.query<any[], void>({
+      query: () => "/api/dropdown/items",
+    }),
+
+    // =====================================================
+    // CONTENT TYPES
+    // Admin Only
+    // =====================================================
+
+    getContentTypes: builder.query<any[], void>({
+      query: () => "/api/dropdown/content-types",
+    }),
+
   }),
 });
 
@@ -116,5 +135,7 @@ export const {
   useGetEventsQuery,
   useGetSongsQuery,
   useGetSpeakersQuery,
+  useGetItemsQuery,
+  useGetContentTypesQuery
 
 } = videosDropdownAPI;
