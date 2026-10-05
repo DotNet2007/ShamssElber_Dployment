@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 import {
   Building2,
   Calendar,
@@ -24,6 +26,8 @@ import FormGroup from "./form/FormGroup";
 import InputWrapper from "./form/InputWrapper";
 import SelectWrapper from "./form/SelectWrapper";
 
+import { getArabicDayName } from "@/app/helpers/getArabicDayName";
+
 type VideoInformationSectionProps = {
   // ==================================================
   // LAYOUT
@@ -44,6 +48,8 @@ type VideoInformationSectionProps = {
   dateInputRef: React.RefObject<HTMLInputElement | null>;
 
   openDatePicker: () => void;
+
+  setDate: (value: string) => void;
 
   // ==================================================
   // ADMIN
@@ -102,6 +108,10 @@ type VideoInformationSectionProps = {
   translation: string;
 
   setTranslation: (value: string) => void;
+
+  translations: any[];
+
+  translationsIsLoading: boolean;
 
   // ==================================================
   // PRODUCT TYPE
@@ -280,6 +290,7 @@ export default function VideoInformationSection({
   date,
   dateInputRef,
   openDatePicker,
+  setDate,
 
   isAdmin,
 
@@ -306,6 +317,8 @@ export default function VideoInformationSection({
 
   translation,
   setTranslation,
+  translations,
+  translationsIsLoading,
 
   productType,
   setProductType,
@@ -333,7 +346,6 @@ export default function VideoInformationSection({
 
   eventName,
   setEventName,
-
   events,
   eventsIsLoading,
 
@@ -495,11 +507,15 @@ export default function VideoInformationSection({
             }
           `}
         >
+
           {/* ==================================================
-              1. التاريخ
+              1. التاريخ - REQUIRED
               ================================================== */}
 
-          <FormGroup label="التاريخ">
+          <FormGroup
+            label="التاريخ"
+            required
+          >
             <InputWrapper
               icon={<Calendar size={16} />}
             >
@@ -521,7 +537,7 @@ export default function VideoInformationSection({
                   "
                 >
                   {date
-                    ? date
+                    ? getArabicDayName(date)
                     : "اختر التاريخ"}
                 </div>
 
@@ -529,7 +545,9 @@ export default function VideoInformationSection({
                   ref={dateInputRef}
                   type="datetime-local"
                   value={date}
-                  onChange={() => {}}
+                  onChange={(e) =>
+                    setDate(e.target.value)
+                  }
                   className="
                     absolute
                     inset-0
@@ -545,10 +563,13 @@ export default function VideoInformationSection({
           </FormGroup>
 
           {/* ==================================================
-              2. الصنف
+              2. الصنف - REQUIRED
               ================================================== */}
 
-          <FormGroup label="الصنف">
+          <FormGroup
+            label="الصنف"
+            required
+          >
             <SelectWrapper
               isAdmin={isAdmin}
               icon={<Folder size={16} />}
@@ -583,10 +604,13 @@ export default function VideoInformationSection({
           </FormGroup>
 
           {/* ==================================================
-              3. جهة انتاج 1
+              3. جهة انتاج 1 - REQUIRED
               ================================================== */}
 
-          <FormGroup label="جهة انتاج 1">
+          <FormGroup
+            label="جهة انتاج 1"
+            required
+          >
             <SelectWrapper
               isAdmin={isAdmin}
               icon={<Building2 size={16} />}
@@ -683,10 +707,13 @@ export default function VideoInformationSection({
           </FormGroup>
 
           {/* ==================================================
-              5. القطاع
+              5. القطاع - REQUIRED
               ================================================== */}
 
-          <FormGroup label="القطاع">
+          <FormGroup
+            label="القطاع"
+            required
+          >
             <SelectWrapper
               isAdmin={isAdmin}
               icon={<Layers size={16} />}
@@ -725,21 +752,41 @@ export default function VideoInformationSection({
               ================================================== */}
 
           <FormGroup label="الترجمه">
-            <InputWrapper
+            <SelectWrapper
+              isAdmin={isAdmin}
               icon={<Languages size={16} />}
+              onAdd={() =>
+                console.log("إضافة ترجمه")
+              }
             >
-              <input
-                type="text"
+              <select
                 value={translation}
                 onChange={(e) =>
                   setTranslation(
                     e.target.value
                   )
                 }
-                placeholder="ترجمة"
-                className={inputClass}
-              />
-            </InputWrapper>
+                className={selectClass}
+                disabled={translationsIsLoading}
+              >
+                <option value="">
+                  {translationsIsLoading
+                    ? "جاري تحميل الترجمات ..."
+                    : "اختر ترجمه للمنتج"}
+                </option>
+
+                {translations.map(
+                  (translation: any) => (
+                    <option
+                      key={translation.Code}
+                      value={translation.Code}
+                    >
+                      {translation.DescA}
+                    </option>
+                  )
+                )}
+              </select>
+            </SelectWrapper>
           </FormGroup>
 
           {/* ==================================================
@@ -764,7 +811,9 @@ export default function VideoInformationSection({
                   )
                 }
                 className={selectClass}
-                disabled={itemsTypeIsLoading}
+                disabled={
+                  itemsTypeIsLoading
+                }
               >
                 <option value="">
                   {itemsTypeIsLoading
@@ -793,7 +842,9 @@ export default function VideoInformationSection({
           <FormGroup label="نوع الحدث">
             <SelectWrapper
               isAdmin={isAdmin}
-              icon={<CalendarDays size={16} />}
+              icon={
+                <CalendarDays size={16} />
+              }
               onAdd={() =>
                 console.log(
                   "إضافة نوع حدث"
@@ -808,7 +859,9 @@ export default function VideoInformationSection({
                   )
                 }
                 className={selectClass}
-                disabled={eventTypesIsLoading}
+                disabled={
+                  eventTypesIsLoading
+                }
               >
                 <option value="">
                   {eventTypesIsLoading
@@ -865,7 +918,9 @@ export default function VideoInformationSection({
                 {productionLines.map(
                   (productionLine: any) => (
                     <option
-                      key={productionLine.Code}
+                      key={
+                        productionLine.Code
+                      }
                       value={
                         productionLine.Code
                       }
@@ -879,10 +934,13 @@ export default function VideoInformationSection({
           </FormGroup>
 
           {/* ==================================================
-              10. اسم المنتج
+              10. اسم المنتج - REQUIRED
               ================================================== */}
 
-          <FormGroup label="اسم المنتج">
+          <FormGroup
+            label="اسم المنتج"
+            required
+          >
             <InputWrapper
               icon={<Package size={16} />}
             >
@@ -906,7 +964,9 @@ export default function VideoInformationSection({
 
           <FormGroup label="تسلسل المنتج">
             <InputWrapper
-              icon={<ListOrdered size={16} />}
+              icon={
+                <ListOrdered size={16} />
+              }
             >
               <input
                 type="text"
@@ -1047,7 +1107,9 @@ export default function VideoInformationSection({
                       )
                     }
                     className={selectClass}
-                    disabled={eventsIsLoading}
+                    disabled={
+                      eventsIsLoading
+                    }
                   >
                     <option value="">
                       {eventsIsLoading
@@ -1061,14 +1123,16 @@ export default function VideoInformationSection({
                           event.IsRepeated ===
                           true
                       )
-                      .map((event: any) => (
-                        <option
-                          key={event.Code}
-                          value={event.Code}
-                        >
-                          {event.DescA}
-                        </option>
-                      ))}
+                      .map(
+                        (event: any) => (
+                          <option
+                            key={event.Code}
+                            value={event.Code}
+                          >
+                            {event.DescA}
+                          </option>
+                        )
+                      )}
                   </select>
                 </SelectWrapper>
               ) : (
@@ -1157,7 +1221,9 @@ export default function VideoInformationSection({
                   )
                 }
                 className={selectClass}
-                disabled={speakersIsLoading}
+                disabled={
+                  speakersIsLoading
+                }
               >
                 <option value="">
                   {speakersIsLoading
@@ -1186,7 +1252,9 @@ export default function VideoInformationSection({
           {isAdmin && (
             <FormGroup label="نوع المحتوى">
               <SelectWrapper
-                icon={<Layers size={16} />}
+                icon={
+                  <Layers size={16} />
+                }
               >
                 <select
                   value={contentType}

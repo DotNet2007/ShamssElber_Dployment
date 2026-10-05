@@ -109,6 +109,30 @@ export const videosDropdownAPI = createApi({
     }),
 
     // =====================================================
+    // ITEMS SERIALIZATION 
+    // =====================================================
+
+    getItemsSer: builder.query<any[], void>({
+      query: () => "/api/dropdown/items-ser",
+    }),
+
+    // =====================================================
+    // CHANNELS
+    // =====================================================
+
+    getChannels: builder.query<any[], void>({
+      query: () => "/api/dropdown/channels",
+    }),
+
+    // =====================================================
+    // TRANSLATIONS
+    // =====================================================
+
+    getTranslations: builder.query<any[], void>({
+      query: () => "/api/dropdown/translations",
+    }),
+
+    // =====================================================
     // CONTENT TYPES
     // Admin Only
     // =====================================================
@@ -136,6 +160,9 @@ export const {
   useGetSongsQuery,
   useGetSpeakersQuery,
   useGetItemsQuery,
+  useGetItemsSerQuery,
+  useGetChannelsQuery,
+  useGetTranslationsQuery,
   useGetContentTypesQuery
 
 } = videosDropdownAPI;

@@ -2,47 +2,16 @@
 
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 
-import {
-  ArrowRight,
-  Building2,
-  Calendar,
-  CalendarDays,
-  ChevronDown,
-  FileVideo,
-  Folder,
-  Globe2,
-  Image as ImageIcon,
-  ImagePlus,
-  Layers,
-  ListOrdered,
-  Languages,
-  Music2,
-  Package,
-  Plus,
-  RefreshCw,
-  Save,
-  Share2,
-  Trash2,
-  UploadCloud,
-  User,
-  Video,
-  Workflow,
-  X,
-    Grid3X3,
-  Grid2X2,
-  Rows3,
-} from "lucide-react";
+import { Building2, Calendar, CalendarDays, ChevronDown, FileVideo, Folder, Globe2, Image as ImageIcon, ImagePlus, Layers, ListOrdered, Languages, Music2, Package, Plus, RefreshCw, Save, Share2, Trash2, UploadCloud, User, Video, Workflow, Grid3X3, Grid2X2, Rows3 } from "lucide-react";
 
 
-import {
-  formatDuration,
-  formatFileSize,
-} from "@/app/helpers/videoHelper";
-import { useGetContentTypesQuery, useGetEventsQuery, useGetEventTypesQuery, useGetItemsQuery, useGetItemTypesQuery, useGetProdLinesQuery, useGetProductEntityOneQuery, useGetProductEntityTwoQuery, useGetSectorsQuery, useGetSongsQuery, useGetSpeakersQuery } from "@/app/services/sectors-api";
+import { formatDuration, formatFileSize } from "@/app/helpers/videoHelper";
+import { useGetChannelsQuery, useGetContentTypesQuery, useGetEventsQuery, useGetEventTypesQuery, useGetItemsQuery, useGetItemsSerQuery, useGetItemTypesQuery, useGetProdLinesQuery, useGetProductEntityOneQuery, useGetProductEntityTwoQuery, useGetSectorsQuery, useGetSongsQuery, useGetSpeakersQuery, useGetTranslationsQuery } from "@/app/services/sectors-api";
 import { useCreateVideoMutation } from "@/app/services/videos-api";
 import { getCurrentDateTime } from "@/app/helpers/getCurentDate";
 import { getArabicDayName } from "@/app/helpers/getArabicDayName";
 import { jwtDecode } from "jwt-decode";
+import { toast } from "sonner";
 
 export default function AddVideoPage() {
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -87,14 +56,7 @@ export default function AddVideoPage() {
  
 
   const [formLayout, setFormLayout] = useState<"grid3" | "grid2" | "full">("grid3");
-  const [date, setDate] = useState(getCurrentDateTime());
-
-  const dateInputRef = useRef<HTMLInputElement>(null);
-
-  const openDatePicker = () => {
-    dateInputRef.current?.showPicker();
-  };
-
+  
   // ==================================================
   // VIDEO
   // ==================================================
@@ -108,10 +70,8 @@ export default function AddVideoPage() {
   // ==================================================
 
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-
   const [thumbnailUrl, setThumbnailUrl] = useState("");
 
-  const [mainUploadChannel, setMainUploadChannel] = useState("");
 
   const [youtubeLink, setYoutubeLink] = useState("");
   const [facebookLink, setFacebookLink] = useState("");
@@ -129,7 +89,13 @@ export default function AddVideoPage() {
   // ==================================================
 
   const [title, setTitle] = useState("");
-  // const [date, setDate] = useState("");
+  const [date, setDate] = useState(getCurrentDateTime());
+
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  const openDatePicker = () => {
+    dateInputRef.current?.showPicker();
+  };
 
   // ==================================================
   // PRODUCTION
@@ -145,10 +111,10 @@ export default function AddVideoPage() {
   const [sector, setSector] = useState("");
   const [translation, setTranslation] = useState("");
 
-  // const [isAdmin, setIsAdmin] = useState(false);
+
   const [contentType, setContentType] = useState("");
 
-   const isAdmin = getIsAdminFromToken();
+  const isAdmin = getIsAdminFromToken();
   // ==================================================
   // PRODUCT
   // ==================================================
@@ -166,6 +132,9 @@ export default function AddVideoPage() {
   const { data: events = [], isLoading: eventsIsLoading, refetch: refetchEvents, isFetching: eventsIsFetching, isError: eventsIsError } = useGetEventsQuery();
 
   const { data: items = [], isLoading: itemsIsLoading, refetch: refetchItems, isFetching: itemsIsFetching, isError: itemsIsError } = useGetItemsQuery();
+  const { data: itemsSer = [], isLoading: itemsSerIsLoading, refetch: refetchItemsSer, isFetching: itemsSerIsFetching, isError: itemsSerIsError } = useGetItemsSerQuery();
+  const { data: channels = [], isLoading: channelsIsLoading, refetch: refetchChannels, isFetching: channelsIsFetching, isError: channelsIsError } = useGetChannelsQuery();
+  const { data: translations = [], isLoading: translationsIsLoading, refetch: refetchTranslations, isFetching: translationsIsFetching, isError: translationsIsError } = useGetTranslationsQuery();
 
   const { data: contentTypes = [], isLoading: contentTypesIsLoading } = useGetContentTypesQuery(undefined, { skip: !isAdmin });
 
@@ -189,15 +158,16 @@ export default function AddVideoPage() {
   // PRODUCTION LINE
   // ==================================================
 
-  const [productionLine, setProductionLine] =
-    useState("");
+  const [productionLine, setProductionLine] = useState("");
 
   // ==================================================
-  // HYMN / SPEAKER
+  // HYMN / SPEAKER / CHANNEL
   // ==================================================
 
   const [hymnName, setHymnName] = useState("");
   const [speakerName, setSpeakerName] = useState("");
+  const [channelName, setChannelName] = useState("");
+
 
   // ==================================================
   // REPEATED
@@ -206,12 +176,6 @@ export default function AddVideoPage() {
   const [isRepeated, setIsRepeated] = useState(false);
   const [repeatType, setRepeatType] = useState("");
 
-  // ==================================================
-  // OTHER
-  // ==================================================
-
-  const [description, setDescription] = useState("");
-  const [notes, setNotes] = useState("");
 
   // ==================================================
   // ERROR
@@ -219,8 +183,9 @@ export default function AddVideoPage() {
 
   const [error, setError] = useState("");
 
-
-
+  // ==================================================
+  // CHANGE THE LAOYUT FROM LOCAL STORAGE
+  // ==================================================
 
   useEffect(() => {
     const saved = localStorage.getItem("video-form-layout");
@@ -378,7 +343,6 @@ export default function AddVideoPage() {
 
   const handleRefresh = () => {
     setTitle("");
-    // setDate("");
 
     setProduction1("");
     setProduction2("");
@@ -401,7 +365,6 @@ export default function AddVideoPage() {
     setIsRepeated(false);
     setRepeatType("");
 
-    setMainUploadChannel("");
     setYoutubeLink("");
     setFacebookLink("");
     setInstagramLink("");
@@ -411,9 +374,6 @@ export default function AddVideoPage() {
     setContent3("");
     setContent4("");
     setContent5("");
-
-    setDescription("");
-    setNotes("");
 
     setError("");
 
@@ -427,460 +387,207 @@ export default function AddVideoPage() {
 // SAVE VIDEO
 // ==================================================
 
-  const handleSave = async () => {
+const handleSave = async () => {
+  setError("");
 
-    setError("");
+  // ==================================================
+  // VALIDATION
+  // ==================================================
 
+  if (!productName.trim()) {
+    setError("من فضلك أدخل اسم المنتج.");
+    return;
+  }
 
-    // ==================================================
-    // VALIDATION
-    // ==================================================
+  // if (!productSerial.trim()) {
+  //   setError("من فضلك اختر تسلسل المنتج.");
+  //   return;
+  // }
 
-    // if (!date) {
+  if (!videoFile) {
+    setError("من فضلك اختر ملف الفيديو.");
+    return;
+  }
 
-    //   setError(
-    //     "من فضلك أدخل التاريخ."
-    //   );
+  // ==================================================
+  // CREATE FORMDATA
+  // ==================================================
 
-    //   return;
-    // }
+  const formData = new FormData();
 
+  // ==================================================
+  // BASIC INFORMATION
+  // ==================================================
 
-    if (!title.trim()) {
+  formData.append("date", date || "");
+  formData.append("title", title.trim());
 
-      setError(
-        "من فضلك أدخل الصنف."
-      );
+  // ==================================================
+  // PRODUCTION
+  // ==================================================
 
-      return;
-    }
+  formData.append("production1", production1 || "");
+  formData.append("production2", production2 || "");
 
+  // ==================================================
+  // SECTOR / TRANSLATION
+  // ==================================================
 
-    if (!productName.trim()) {
+  formData.append("sector", sector || "");
+  formData.append("translation", translation || "");
 
-      setError(
-        "من فضلك أدخل اسم المنتج."
-      );
+  // ==================================================
+  // PRODUCT
+  // ==================================================
 
-      return;
-    }
+  formData.append("productType", productType || "");
+  formData.append("item", item || "");
+  formData.append("productName", productName.trim());
+  formData.append("productSerial", productSerial || "");
 
+  // ==================================================
+  // EVENT
+  // ==================================================
 
-    if (!productSerial.trim()) {
+  formData.append("eventType", eventType || "");
+  formData.append("eventName", eventName || "");
 
-      setError(
-        "من فضلك أدخل تسلسل المنتج."
-      );
+  // ==================================================
+  // PRODUCTION LINE
+  // ==================================================
 
-      return;
-    }
+  formData.append("productionLine", productionLine || "");
 
+  // ==================================================
+  // HYMN / SPEAKER
+  // ==================================================
 
-    if (!videoFile) {
+  formData.append("hymnName", hymnName || "");
+  formData.append("speakerName", speakerName || "");
 
-      setError(
-        "من فضلك اختر ملف الفيديو."
-      );
+  // ==================================================
+  // EVENT STATUS
+  // ==================================================
 
-      return;
-    }
+  formData.append("isRepeated", String(isRepeated));
+  formData.append("repeatType", repeatType || "");
 
+  // ==================================================
+  // CHANNEL
+  // ==================================================
 
-    // ==================================================
-    // CREATE FORMDATA
-    // ==================================================
+  // استخدم channelName لأن ده الـ state المرتبط بالـ select
+  formData.append("channelName", channelName || "");
 
-    const formData =
-      new FormData();
+  // // لو الـ backend الحالي مستني mainUploadChannel
+  // // نرسل الاثنين لتجنب مشكلة اختلاف الاسم
+  // formData.append("mainUploadChannel", channelName || "");
 
+  // ==================================================
+  // SOCIAL LINKS
+  // ==================================================
 
-    // ==================================================
-    // VIDEO INFORMATION
-    // ==================================================
+  formData.append("youtubeLink", youtubeLink.trim());
+  formData.append("facebookLink", facebookLink.trim());
+  formData.append("instagramLink", instagramLink.trim());
 
+  // ==================================================
+  // CONTENT
+  // ==================================================
+
+  formData.append("content1", content1.trim());
+  formData.append("content2", content2.trim());
+  formData.append("content3", content3.trim());
+  formData.append("content4", content4.trim());
+  formData.append("content5", content5.trim());
+
+  // ==================================================
+  // CONTENT TYPE - ADMIN
+  // ==================================================
+
+  if (isAdmin) {
+    formData.append("contentType", contentType || "");
+  }
+
+  // ==================================================
+  // VIDEO INFORMATION
+  // ==================================================
+
+  formData.append("duration", videoDuration || "");
+  // formData.append("description", description.trim());
+  // formData.append("notes", notes.trim());
+
+  // ==================================================
+  // VIDEO FILE
+  // ==================================================
+
+  formData.append("videoFile", videoFile, videoFile.name);
+
+  // ==================================================
+  // THUMBNAIL
+  // ==================================================
+
+  if (thumbnailFile) {
     formData.append(
-      "date",
-      date
+      "thumbnailFile",
+      thumbnailFile,
+      thumbnailFile.name
     );
+  }
 
-    formData.append(
-      "title",
-      title
-    );
+  // ==================================================
+  // DEBUG
+  // ==================================================
 
+  console.log("========== VIDEO FORM DATA ==========");
 
-    // ==================================================
-    // PRODUCTION
-    // ==================================================
+  for (const [key, value] of formData.entries()) {
+    if (value instanceof File) {
+      console.log(key, {
+        name: value.name,
+        size: value.size,
+        type: value.type,
+      });
+    } else {
+      console.log(key, value);
+    }
+  }
 
-    if (production1) {
+  console.log("====================================");
 
-      formData.append(
-        "production1",
-        production1
-      );
+  // ==================================================
+  // SAVE
+  // ==================================================
 
+  try {
+    const result = await createVideo(formData).unwrap();
+
+    console.log("Video created successfully:", result);
+
+    toast.success("تم حفظ الفيديو ك مسوده بنجاح");
+
+    handleRefresh();
+
+  } catch (error: any) {
+    // console.error("Create video error:", error);
+
+    let message = "حدث خطأ أثناء حفظ الفيديو.";
+
+    if (error?.data?.message) {
+      message = error.data.message;
+    } else if (error?.data?.error) {
+      message = error.data.error;
+    } else if (error?.error) {
+      message = error.error;
     }
 
+    setError(message);
+    toast.error("حدث خطأ أثناء حفظ الفيديو");
+  }
+};
 
-    if (production2) {
 
-      formData.append(
-        "production2",
-        production2
-      );
 
-    }
-
-
-    // ==================================================
-    // SECTOR
-    // ==================================================
-
-    if (sector) {
-
-      formData.append(
-        "sector",
-        sector
-      );
-
-    }
-
-
-    // ==================================================
-    // TRANSLATION
-    // ==================================================
-
-    if (translation.trim()) {
-
-      formData.append(
-        "translation",
-        translation
-      );
-
-    }
-
-
-    // ==================================================
-    // PRODUCT
-    // ==================================================
-
-    if (productType) {
-
-      formData.append(
-        "productType",
-        productType
-      );
-
-    }
-
-
-    if (productName.trim()) {
-
-      formData.append(
-        "productName",
-        productName
-      );
-
-    }
-
-
-    if (productSerial.trim()) {
-
-      formData.append(
-        "productSerial",
-        productSerial
-      );
-
-    }
-
-
-    // ==================================================
-    // EVENT
-    // ==================================================
-
-    if (eventType) {
-
-      formData.append(
-        "eventType",
-        eventType
-      );
-
-    }
-
-
-    if (eventName) {
-
-      formData.append(
-        "eventName",
-        eventName
-      );
-
-    }
-
-
-    // ==================================================
-    // PRODUCTION LINE
-    // ==================================================
-
-    if (productionLine) {
-
-      formData.append(
-        "productionLine",
-        productionLine
-      );
-
-    }
-
-
-    // ==================================================
-    // HYMN
-    // ==================================================
-
-    if (hymnName) {
-
-      formData.append(
-        "hymnName",
-        hymnName
-      );
-
-    }
-
-
-    // ==================================================
-    // SPEAKER
-    // ==================================================
-
-    if (speakerName) {
-
-      formData.append(
-        "speakerName",
-        speakerName
-      );
-
-    }
-
-
-    // ==================================================
-    // REPEATED
-    // ==================================================
-
-    formData.append(
-      "isRepeated",
-      String(isRepeated)
-    );
-
-
-    if (repeatType) {
-
-      formData.append(
-        "repeatType",
-        repeatType
-      );
-
-    }
-
-
-    // ==================================================
-    // UPLOAD CHANNELS
-    // ==================================================
-
-    if (mainUploadChannel) {
-
-      formData.append(
-        "mainUploadChannel",
-        mainUploadChannel
-      );
-
-    }
-
-
-    if (youtubeLink.trim()) {
-
-      formData.append(
-        "youtubeLink",
-        youtubeLink
-      );
-
-    }
-
-
-    if (facebookLink.trim()) {
-
-      formData.append(
-        "facebookLink",
-        facebookLink
-      );
-
-    }
-
-
-    if (instagramLink.trim()) {
-
-      formData.append(
-        "instagramLink",
-        instagramLink
-      );
-
-    }
-
-
-    // ==================================================
-    // CONTENT
-    // ==================================================
-
-    if (content1.trim()) {
-
-      formData.append(
-        "content1",
-        content1
-      );
-
-    }
-
-
-    if (content2.trim()) {
-
-      formData.append(
-        "content2",
-        content2
-      );
-
-    }
-
-
-    if (content3.trim()) {
-
-      formData.append(
-        "content3",
-        content3
-      );
-
-    }
-
-
-    if (content4.trim()) {
-
-      formData.append(
-        "content4",
-        content4
-      );
-
-    }
-
-
-    if (content5.trim()) {
-
-      formData.append(
-        "content5",
-        content5
-      );
-
-    }
-
-
-    // ==================================================
-    // VIDEO INFORMATION
-    // ==================================================
-
-    formData.append(
-      "duration",
-      videoDuration
-    );
-
-
-    if (description.trim()) {
-
-      formData.append(
-        "description",
-        description
-      );
-
-    }
-
-
-    if (notes.trim()) {
-
-      formData.append(
-        "notes",
-        notes
-      );
-
-    }
-
-
-    // ==================================================
-    // VIDEO FILE
-    // ==================================================
-
-    formData.append(
-      "videoFile",
-      videoFile
-    );
-
-
-    // ==================================================
-    // THUMBNAIL
-    // ==================================================
-
-    if (thumbnailFile) {
-
-      formData.append(
-        "thumbnailFile",
-        thumbnailFile
-      );
-
-    }
-
-
-    // ==================================================
-    // SEND TO BACKEND
-    // ==================================================
-
-    try {
-
-      const result =
-        await createVideo(
-          formData
-        ).unwrap();
-
-
-      console.log(
-        "Video created:",
-        result
-      );
-
-
-      alert(
-        "تم حفظ الفيديو كمسودة بنجاح."
-      );
-
-
-      // Clear form after successful save
-      handleRefresh();
-
-    }
-
-    catch (error: any) {
-
-      console.error(
-        "Create video error:",
-        error
-      );
-
-
-      const message =
-        error?.data?.message ||
-        "حدث خطأ أثناء حفظ الفيديو.";
-
-
-      setError(
-        message
-      );
-
-    }
-
-  };
 
   return (
     <main
@@ -1118,7 +825,7 @@ export default function AddVideoPage() {
                 1. التاريخ
                 ================================================== */}
 
-            <FormGroup label="التاريخ">
+            <FormGroup label="التاريخ" required>
               <InputWrapper icon={<Calendar size={16} />}>
                 <div
                   className={`${inputClass} relative w-full cursor-pointer`}
@@ -1167,7 +874,7 @@ export default function AddVideoPage() {
                 2. الصنف
                 ================================================== */}
 
-            <FormGroup label="الصنف">
+            <FormGroup label="الصنف" required>
               <SelectWrapper
                 isAdmin={isAdmin}
                 icon={<Folder size={16} />}
@@ -1175,7 +882,7 @@ export default function AddVideoPage() {
               >
                 <select
                   value={item}
-                  onChange={(e) => setProduction1(e.target.value)}
+                  onChange={(e) => setItem(e.target.value)}
                   className={selectClass}
                   disabled={itemsIsLoading}
                 >
@@ -1202,7 +909,7 @@ export default function AddVideoPage() {
                 3. جهة انتاج 1
                 ================================================== */}
 
-            <FormGroup label="جهة انتاج 1">
+            <FormGroup label="جهة انتاج 1" required>
               <SelectWrapper
                 isAdmin={isAdmin}
                 icon={<Building2 size={16} />}
@@ -1271,7 +978,7 @@ export default function AddVideoPage() {
                 5. القطاع
                 ================================================== */}
 
-            <FormGroup label="القطاع">
+            <FormGroup label="القطاع" required>
               <SelectWrapper
                 isAdmin={isAdmin}
                 icon={<Layers size={16} />}
@@ -1306,24 +1013,37 @@ export default function AddVideoPage() {
                 ================================================== */}
 
             <FormGroup label="الترجمه">
-              <InputWrapper
+              <SelectWrapper
+                isAdmin={isAdmin}
                 icon={<Languages size={16} />}
+                onAdd={() => console.log("إضافة ترجمه")}
               >
-                <input
-                  type="text"
+
+                <select
                   value={translation}
-                  onChange={(e) =>
-                    setTranslation(e.target.value)
-                  }
-                  placeholder="ترجمة"
-                  className={inputClass}
-                />
-              </InputWrapper>
+                  onChange={(e) => setTranslation(e.target.value)}
+                  className={selectClass}
+                  disabled={translationsIsLoading}
+                >
+                  <option value="">
+                    {translationsIsLoading
+                      ? "جاري تحميل الترجمات ..."
+                      : "اختر ترجمه للمنتج"}
+                  </option>
+
+                  {translations.map((translation: any) => (
+                    <option
+                      key={translation.Code}
+                      value={translation.Code}
+                    >
+                      {translation.DescA}
+                    </option>
+                  ))}
+                </select>
+              </SelectWrapper>
             </FormGroup>
 
 
-           
-        
 
             {/* ==================================================
                 7. نوع المنتج
@@ -1431,7 +1151,7 @@ export default function AddVideoPage() {
                 10. اسم المنتج
                 ================================================== */}
 
-            <FormGroup label="اسم المنتج">
+            <FormGroup label="اسم المنتج" required>
               <InputWrapper
                 icon={<Package size={16} />}
               >
@@ -1452,19 +1172,34 @@ export default function AddVideoPage() {
                 ================================================== */}
 
             <FormGroup label="تسلسل المنتج">
-              <InputWrapper
+              <SelectWrapper
+                isAdmin={isAdmin}
                 icon={<ListOrdered size={16} />}
+                onAdd={() => console.log("إضافة تسلسل")}
               >
-                <input
-                  type="text"
+
+                <select
                   value={productSerial}
-                  onChange={(e) =>
-                    setProductSerial(e.target.value)
-                  }
-                  placeholder="تسلسل المنتج"
-                  className={inputClass}
-                />
-              </InputWrapper>
+                  onChange={(e) => setProductSerial(e.target.value)}
+                  className={selectClass}
+                  disabled={itemsSerIsLoading}
+                >
+                  <option value="">
+                    {itemsSerIsLoading
+                      ? "جاري تحميل التسلسل ..."
+                      : "اختر تسلسل للمنتج"}
+                  </option>
+
+                  {itemsSer.map((itemSer: any) => (
+                    <option
+                      key={itemSer.Code}
+                      value={itemSer.Code}
+                    >
+                      {itemSer.DescA}
+                    </option>
+                  ))}
+                </select>
+              </SelectWrapper>
             </FormGroup>
 
             {/* ==================================================
@@ -1606,10 +1341,6 @@ export default function AddVideoPage() {
                       </option>
 
                       {events
-                        .filter(
-                          (event: any) =>
-                            event.IsRepeated === true
-                        )
                         .map((event: any) => (
                           <option
                             key={event.Code}
@@ -1764,37 +1495,36 @@ export default function AddVideoPage() {
                 <SelectWrapper
                   isAdmin={isAdmin}
                   icon={<Video size={16} />}
-                  onAdd={() => console.log("إضافة قناة رفع")}
+                  onAdd={() => console.log("إضافة قناة")}
                 >
+
                   <select
-                    value={mainUploadChannel}
-                    onChange={(e) => {
-                      setMainUploadChannel(e.target.value);
-                    }}
+                    value={channelName}
+                    onChange={(e) => setChannelName(e.target.value)}
                     className={selectClass}
+                    disabled={channelsIsLoading}
                   >
                     <option value="">
-                      اختر قناة / صفحة الرفع
+                      {channelsIsLoading
+                        ? "جاري تحميل القنوات..."
+                        : "اختر قناة"}
                     </option>
 
-                    <option value="youtube">
-                      YouTube
-                    </option>
-
-                    <option value="facebook">
-                      Facebook
-                    </option>
-
-                    <option value="instagram">
-                      Instagram
-                    </option>
-
-                    <option value="all">
-                      جميع المنصات
-                    </option>
+                    {channels.map((channel: any) => (
+                      <option
+                        key={channel.Code}
+                        value={channel.Code}
+                      >
+                        {channel.DescA}
+                      </option>
+                    ))}
                   </select>
+
                 </SelectWrapper>
               </FormGroup>
+
+
+             
 
               {/* YouTube */}
 
@@ -2465,23 +2195,56 @@ export default function AddVideoPage() {
 // FORM GROUP
 // ==================================================
 
+
 function FormGroup({
   label,
   children,
+  required = false,
 }: {
   label: string;
   children: React.ReactNode;
+  required?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-[7px]">
       <label className="text-xs font-semibold text-[#4a5568]">
         {label}
+
+        {required && (
+          <span
+            className="mr-1 text-[14px] font-bold text-red-500"
+            title="هذا الحقل مطلوب"
+            aria-label="حقل مطلوب"
+          >
+            *
+          </span>
+        )}
       </label>
 
       {children}
     </div>
   );
 }
+
+// function FormGroup({
+//   label,
+//   children,
+// }: {
+//   label: string;
+//   children: React.ReactNode;
+// }) {
+//   return (
+//     <div className="flex flex-col gap-[7px]">
+//       <label className="text-xs font-semibold text-[#4a5568]">
+//         {label}
+//       </label>
+
+//       {children}
+//     </div>
+//   );
+
+  
+// }
 
 // ==================================================
 // INPUT WRAPPER

@@ -1,252 +1,382 @@
 "use client";
 
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { formatDuration } from "@/app/helpers/videoHelper";
 
-import { useGetContentTypesQuery, useGetEventsQuery, useGetEventTypesQuery, useGetItemsQuery, useGetItemTypesQuery, useGetProdLinesQuery, useGetProductEntityOneQuery, useGetProductEntityTwoQuery, useGetSectorsQuery, useGetSongsQuery, useGetSpeakersQuery } from "@/app/services/sectors-api";
+import { getArabicDayName } from "@/app/helpers/getArabicDayName";
+
+import {
+  useGetContentTypesQuery,
+  useGetEventsQuery,
+  useGetEventTypesQuery,
+  useGetItemsQuery,
+  useGetItemTypesQuery,
+  useGetProdLinesQuery,
+  useGetProductEntityOneQuery,
+  useGetProductEntityTwoQuery,
+  useGetSectorsQuery,
+  useGetSongsQuery,
+  useGetSpeakersQuery,
+  useGetTranslationsQuery,
+} from "@/app/services/sectors-api";
 
 import { useCreateVideoMutation } from "@/app/services/videos-api";
 
 import { jwtDecode } from "jwt-decode";
-import { getArabicDayName } from "@/app/helpers/getArabicDayName";
 
-// ==================================================
-// TYPES
-// ==================================================
+/* =========================================================
+   TYPES
+========================================================= */
 
-type FormLayout = "grid3" | "grid2" | "full";
+export type FormLayout =
+  | "grid3"
+  | "grid2"
+  | "full";
 
 type JwtPayload = {
   id?: number | string;
-  isAdmin?: boolean ;
-//   role?: string;
+  isAdmin?: boolean;
 };
 
-// ==================================================
-// HELPERS
-// ==================================================
+/* =========================================================
+   HELPERS
+========================================================= */
 
 const getIsAdminFromToken = (): boolean => {
   try {
-    const token = localStorage.getItem("userToken");
+    if (typeof window === "undefined") {
+      return false;
+    }
 
-    if (!token) return false;
+    const token =
+      localStorage.getItem("userToken");
 
-    const decoded = jwtDecode<JwtPayload>(token);
+    if (!token) {
+      return false;
+    }
 
-    return (
-      decoded?.isAdmin === true 
-    //   decoded?.role === "ADMIN"
-    );
+    const decoded =
+      jwtDecode<JwtPayload>(token);
+
+    return decoded?.isAdmin === true;
   } catch {
     return false;
   }
 };
 
-// const getCurrentUserIdFromToken = (): number | null => {
-//   try {
-//     const token = localStorage.getItem("userToken");
-
-//     if (!token) return null;
-
-//     const decoded = jwtDecode<JwtPayload>(token);
-
-//     if (decoded?.id == null) return null;
-
-//     const id = Number(decoded.id);
-
-//     return Number.isFinite(id) ? id : null;
-//   } catch {
-//     return null;
-//   }
-// };
-
-// ==================================================
-// HOOK
-// ==================================================
+/* =========================================================
+   HOOK
+========================================================= */
 
 export function useVideoForm() {
-  // ==================================================
-  // REFS
-  // ==================================================
+  /* =======================================================
+     REFS
+  ======================================================= */
 
-  const videoInputRef = useRef<HTMLInputElement>(null);
-  const thumbnailInputRef = useRef<HTMLInputElement>(null);
-  const dateInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef =
+    useRef<HTMLInputElement>(null);
 
-  // ==================================================
-  // ADMIN
-  // ==================================================
+  const thumbnailInputRef =
+    useRef<HTMLInputElement>(null);
 
-  const [isAdmin, setIsAdmin] = useState(false);
+  const dateInputRef =
+    useRef<HTMLInputElement>(null);
 
-//   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  /* =======================================================
+     ADMIN
+  ======================================================= */
 
-  // ==================================================
-  // FORM LAYOUT
-  // ==================================================
+  const [isAdmin, setIsAdmin] =
+    useState(false);
 
-  const [formLayout, setFormLayout] = useState<FormLayout>("grid3");
+  /* =======================================================
+     FORM LAYOUT
+  ======================================================= */
 
-  // ==================================================
-  // DATE
-  // ==================================================
+  const [formLayout, setFormLayout] =
+    useState<FormLayout>("grid3");
 
-  const [date, setDate] = useState(getArabicDayName(new Date().toISOString()));
+  /* =======================================================
+     DATE
+  ======================================================= */
 
-  // ==================================================
-  // VIDEO
-  // ==================================================
+  const [date, setDate] = useState(
+    getArabicDayName(
+      new Date().toISOString()
+    )
+  );
 
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [videoUrl, setVideoUrl] = useState("");
-  const [videoDuration, setVideoDuration] = useState("");
+  /* =======================================================
+     VIDEO
+  ======================================================= */
 
-  // ==================================================
-  // THUMBNAIL
-  // ==================================================
+  const [videoFile, setVideoFile] =
+    useState<File | null>(null);
 
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [videoUrl, setVideoUrl] =
+    useState("");
 
-  // ==================================================
-  // VIDEO INFORMATION
-  // ==================================================
+  const [videoDuration, setVideoDuration] =
+    useState("");
 
-  const [title, setTitle] = useState("");
+  /* =======================================================
+     THUMBNAIL
+  ======================================================= */
 
-  // ==================================================
-  // PRODUCTION
-  // ==================================================
+  const [thumbnailFile, setThumbnailFile] =
+    useState<File | null>(null);
 
-  const [production1, setProduction1] = useState("");
-  const [production2, setProduction2] = useState("");
+  const [thumbnailUrl, setThumbnailUrl] =
+    useState("");
 
-  // ==================================================
-  // SECTOR / TRANSLATION
-  // ==================================================
+  /* =======================================================
+     VIDEO INFORMATION
+  ======================================================= */
 
-  const [sector, setSector] = useState("");
+  const [title, setTitle] =
+    useState("");
 
-  const [translation, setTranslation] = useState("");
+  /* =======================================================
+     PRODUCTION
+  ======================================================= */
 
-  // ==================================================
-  // CONTENT TYPE
-  // ==================================================
+  const [production1, setProduction1] =
+    useState("");
 
-  const [contentType, setContentType] = useState("");
+  const [production2, setProduction2] =
+    useState("");
 
-  // ==================================================
-  // PRODUCT
-  // ==================================================
+  /* =======================================================
+     SECTOR / TRANSLATION
+  ======================================================= */
 
-  const [productType, setProductType] = useState("");
-  const [item, setItem] = useState("");
-  const [productName, setProductName] = useState("");
-  const [productSerial, setProductSerial] = useState("");
+  const [sector, setSector] =
+    useState("");
 
-  // ==================================================
-  // EVENT
-  // ==================================================
+  const [translation, setTranslation] =
+    useState("");
 
-  const [eventType, setEventType] = useState("");
-  const [eventName, setEventName] = useState("");
+  /* =======================================================
+     CONTENT TYPE
+  ======================================================= */
 
-  // ==================================================
-  // PRODUCTION LINE
-  // ==================================================
+  const [contentType, setContentType] =
+    useState("");
 
-  const [productionLine, setProductionLine] = useState("");
+  /* =======================================================
+     PRODUCT
+  ======================================================= */
 
-  // ==================================================
-  // HYMN / SPEAKER
-  // ==================================================
+  const [productType, setProductType] =
+    useState("");
 
-  const [hymnName, setHymnName] = useState("");
-  const [speakerName, setSpeakerName] = useState("");
+  const [item, setItem] =
+    useState("");
 
-  // ==================================================
-  // REPEATED
-  // ==================================================
+  const [productName, setProductName] =
+    useState("");
 
-  const [isRepeated, setIsRepeated] = useState(false);
-  const [repeatType, setRepeatType] = useState("");
+  const [productSerial, setProductSerial] =
+    useState("");
 
-  // ==================================================
-  // UPLOAD CHANNELS
-  // ==================================================
+  /* =======================================================
+     EVENT
+  ======================================================= */
 
-  const [mainUploadChannel, setMainUploadChannel] = useState("");
-  const [youtubeLink, setYoutubeLink] = useState("");
-  const [facebookLink, setFacebookLink] = useState("");
-  const [instagramLink, setInstagramLink] = useState("");
+  const [eventType, setEventType] =
+    useState("");
 
-  // ==================================================
-  // PRODUCT CONTENT
-  // ==================================================
+  const [eventName, setEventName] =
+    useState("");
 
-  const [content1, setContent1] = useState("");
-  const [content2, setContent2] = useState("");
-  const [content3, setContent3] = useState("");
-  const [content4, setContent4] = useState("");
-  const [content5, setContent5] = useState("");
+  /* =======================================================
+     PRODUCTION LINE
+  ======================================================= */
 
-  // ==================================================
-  // OTHER
-  // ==================================================
+  const [productionLine, setProductionLine] =
+    useState("");
 
-  const [description, setDescription] = useState("");
-  const [notes, setNotes] = useState("");
+  /* =======================================================
+     HYMN / SPEAKER
+  ======================================================= */
 
-  // ==================================================
-  // ERROR
-  // ==================================================
+  const [hymnName, setHymnName] =
+    useState("");
 
-  const [error, setError] = useState("");
+  const [speakerName, setSpeakerName] =
+    useState("");
 
-  // ==================================================
-  // API - DROPDOWNS
-  // ==================================================
+  /* =======================================================
+     REPEATED
+  ======================================================= */
 
-  const { data: itemsType = [], isLoading: itemsTypeIsLoading } = useGetItemTypesQuery();
-  const { data: eventTypes = [], isLoading: eventTypesIsLoading } = useGetEventTypesQuery();
-  const { data: productionLines = [], isLoading: productionLinesIsLoading } = useGetProdLinesQuery();
-  const { data: sectors = [], isLoading: sectorsIsLoading } = useGetSectorsQuery();
-  const { data: productEntitiesOne = [], isLoading: productEntitiesOneIsLoading } = useGetProductEntityOneQuery();
-  const { data: productEntitiesTwo = [], isLoading: productEntitiesTwoIsLoading } = useGetProductEntityTwoQuery();
-  const { data: songs = [], isLoading: songsIsLoading } = useGetSongsQuery();
-  const { data: speakers = [], isLoading: speakersIsLoading } = useGetSpeakersQuery();
-  const { data: events = [], isLoading: eventsIsLoading } = useGetEventsQuery();
-  const { data: items = [], isLoading: itemsIsLoading } = useGetItemsQuery();
+  const [isRepeated, setIsRepeated] =
+    useState(false);
 
-  const { data: contentTypes = [], isLoading: contentTypesIsLoading } = useGetContentTypesQuery(undefined, { skip: !isAdmin });
+  const [repeatType, setRepeatType] =
+    useState("");
 
-  // ==================================================
-  // CREATE VIDEO
-  // ==================================================
+  /* =======================================================
+     UPLOAD CHANNELS
+  ======================================================= */
 
-  const [ createVideo, { isLoading: isSaving } ] = useCreateVideoMutation();
+  const [mainUploadChannel, setMainUploadChannel] =
+    useState("");
 
-  // ==================================================
-  // INITIALIZATION
-  // ==================================================
+  const [youtubeLink, setYoutubeLink] =
+    useState("");
+
+  const [facebookLink, setFacebookLink] =
+    useState("");
+
+  const [instagramLink, setInstagramLink] =
+    useState("");
+
+  /* =======================================================
+     PRODUCT CONTENT
+  ======================================================= */
+
+  const [content1, setContent1] =
+    useState("");
+
+  const [content2, setContent2] =
+    useState("");
+
+  const [content3, setContent3] =
+    useState("");
+
+  const [content4, setContent4] =
+    useState("");
+
+  const [content5, setContent5] =
+    useState("");
+
+  /* =======================================================
+     OTHER
+  ======================================================= */
+
+  const [description, setDescription] =
+    useState("");
+
+  const [notes, setNotes] =
+    useState("");
+
+  /* =======================================================
+     ERROR
+  ======================================================= */
+
+  const [error, setError] =
+    useState("");
+
+  /* =======================================================
+     API - DROPDOWNS
+  ======================================================= */
+
+  const {
+    data: itemsType = [],
+    isLoading: itemsTypeIsLoading,
+  } = useGetItemTypesQuery();
+
+  const {
+    data: eventTypes = [],
+    isLoading: eventTypesIsLoading,
+  } = useGetEventTypesQuery();
+
+  const {
+    data: productionLines = [],
+    isLoading: productionLinesIsLoading,
+  } = useGetProdLinesQuery();
+
+  const {
+    data: sectors = [],
+    isLoading: sectorsIsLoading,
+  } = useGetSectorsQuery();
+
+  const {
+    data: productEntitiesOne = [],
+    isLoading: productEntitiesOneIsLoading,
+  } = useGetProductEntityOneQuery();
+
+  const {
+    data: productEntitiesTwo = [],
+    isLoading: productEntitiesTwoIsLoading,
+  } = useGetProductEntityTwoQuery();
+
+  const {
+    data: songs = [],
+    isLoading: songsIsLoading,
+  } = useGetSongsQuery();
+
+  const {
+    data: speakers = [],
+    isLoading: speakersIsLoading,
+  } = useGetSpeakersQuery();
+
+  const {
+    data: events = [],
+    isLoading: eventsIsLoading,
+  } = useGetEventsQuery();
+
+  const {
+    data: items = [],
+    isLoading: itemsIsLoading,
+  } = useGetItemsQuery();
+
+  const {
+    data: contentTypes = [],
+    isLoading: contentTypesIsLoading,
+  } = useGetContentTypesQuery(
+    undefined,
+    {
+      skip: !isAdmin,
+    }
+  );
+
+  /*
+   * TRANSLATIONS
+   */
+
+  const {
+    data: translations = [],
+    isLoading: translationsIsLoading,
+  } = useGetTranslationsQuery();
+
+  /* =======================================================
+     CREATE VIDEO
+  ======================================================= */
+
+  const [
+    createVideo,
+    {
+      isLoading: isSaving,
+    },
+  ] = useCreateVideoMutation();
+
+  /* =======================================================
+     INITIALIZATION
+  ======================================================= */
 
   useEffect(() => {
     setIsAdmin(
       getIsAdminFromToken()
     );
-
-    // setCurrentUserId(
-    //   getCurrentUserIdFromToken()
-    // );
   }, []);
 
-  // ==================================================
-  // LOAD FORM LAYOUT
-  // ==================================================
+  /* =======================================================
+     LOAD FORM LAYOUT
+  ======================================================= */
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
     const saved =
       localStorage.getItem(
         "video-form-layout"
@@ -257,48 +387,56 @@ export function useVideoForm() {
       saved === "grid2" ||
       saved === "full"
     ) {
-      setFormLayout(saved);
+      setFormLayout(
+        saved as FormLayout
+      );
     }
   }, []);
 
-  // ==================================================
-  // CHANGE FORM LAYOUT
-  // ==================================================
+  /* =======================================================
+     CHANGE FORM LAYOUT
+  ======================================================= */
 
   const changeFormLayout = (
     layout: FormLayout
   ) => {
     setFormLayout(layout);
 
-    localStorage.setItem(
-      "video-form-layout",
-      layout
-    );
+    if (
+      typeof window !== "undefined"
+    ) {
+      localStorage.setItem(
+        "video-form-layout",
+        layout
+      );
+    }
   };
 
-  // ==================================================
-  // DATE PICKER
-  // ==================================================
+  /* =======================================================
+     DATE PICKER
+  ======================================================= */
 
   const openDatePicker = () => {
     dateInputRef.current?.showPicker();
   };
 
-  // ==================================================
-  // VIDEO URL CLEANUP
-  // ==================================================
+  /* =======================================================
+     VIDEO URL CLEANUP
+  ======================================================= */
 
   useEffect(() => {
     return () => {
       if (videoUrl) {
-        URL.revokeObjectURL(videoUrl);
+        URL.revokeObjectURL(
+          videoUrl
+        );
       }
     };
   }, [videoUrl]);
 
-  // ==================================================
-  // THUMBNAIL URL CLEANUP
-  // ==================================================
+  /* =======================================================
+     THUMBNAIL URL CLEANUP
+  ======================================================= */
 
   useEffect(() => {
     return () => {
@@ -310,9 +448,9 @@ export function useVideoForm() {
     };
   }, [thumbnailUrl]);
 
-  // ==================================================
-  // VIDEO SELECT
-  // ==================================================
+  /* =======================================================
+     VIDEO SELECT
+  ======================================================= */
 
   const handleVideoSelect = (
     event: ChangeEvent<HTMLInputElement>
@@ -320,14 +458,23 @@ export function useVideoForm() {
     const file =
       event.target.files?.[0];
 
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     setError("");
 
-    if (!file.type.startsWith("video/")) {
+    if (
+      !file.type.startsWith("video/")
+    ) {
       setError(
         "من فضلك اختر ملف فيديو صالح."
       );
+
+      if (videoInputRef.current) {
+        videoInputRef.current.value =
+          "";
+      }
 
       return;
     }
@@ -351,10 +498,6 @@ export function useVideoForm() {
     video.preload = "metadata";
 
     video.onloadedmetadata = () => {
-      window.URL.revokeObjectURL(
-        video.src
-      );
-
       const duration =
         video.duration;
 
@@ -365,14 +508,18 @@ export function useVideoForm() {
           formatDuration(duration)
         );
       }
+
+      URL.revokeObjectURL(
+        video.src
+      );
     };
 
     video.src = url;
   };
 
-  // ==================================================
-  // REMOVE VIDEO
-  // ==================================================
+  /* =======================================================
+     REMOVE VIDEO
+  ======================================================= */
 
   const handleRemoveVideo = () => {
     if (videoUrl) {
@@ -391,9 +538,9 @@ export function useVideoForm() {
     }
   };
 
-  // ==================================================
-  // THUMBNAIL SELECT
-  // ==================================================
+  /* =======================================================
+     THUMBNAIL SELECT
+  ======================================================= */
 
   const handleThumbnailSelect = (
     event: ChangeEvent<HTMLInputElement>
@@ -401,14 +548,25 @@ export function useVideoForm() {
     const file =
       event.target.files?.[0];
 
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     setError("");
 
-    if (!file.type.startsWith("image/")) {
+    if (
+      !file.type.startsWith("image/")
+    ) {
       setError(
         "من فضلك اختر صورة صالحة."
       );
+
+      if (
+        thumbnailInputRef.current
+      ) {
+        thumbnailInputRef.current.value =
+          "";
+      }
 
       return;
     }
@@ -426,9 +584,9 @@ export function useVideoForm() {
     setThumbnailUrl(url);
   };
 
-  // ==================================================
-  // REMOVE THUMBNAIL
-  // ==================================================
+  /* =======================================================
+     REMOVE THUMBNAIL
+  ======================================================= */
 
   const handleRemoveThumbnail = () => {
     if (thumbnailUrl) {
@@ -448,11 +606,17 @@ export function useVideoForm() {
     }
   };
 
-  // ==================================================
-  // REFRESH / RESET
-  // ==================================================
+  /* =======================================================
+     RESET FORM
+  ======================================================= */
 
   const handleRefresh = () => {
+    setDate(
+      getArabicDayName(
+        new Date().toISOString()
+      )
+    );
+
     setTitle("");
 
     setProduction1("");
@@ -497,85 +661,86 @@ export function useVideoForm() {
     setError("");
 
     handleRemoveVideo();
-
     handleRemoveThumbnail();
   };
 
-  // ==================================================
-  // SAVE
-  // ==================================================
+  /* =======================================================
+     VALIDATION
+  ======================================================= */
 
-  const handleSave = async () => {
+  const validateForm = (): boolean => {
     setError("");
 
-    // ==================================================
-    // VALIDATION
-    // ==================================================
-
     // الصنف
+
     if (!item.trim()) {
+      setError(
+        "من فضلك اختر الصنف."
+      );
 
-        setError(
-            "من فضلك اختر الصنف."
-        );
-
-    return;
+      return false;
     }
-
 
     // جهة إنتاج 1
+
     if (!production1.trim()) {
+      setError(
+        "من فضلك اختر جهة الإنتاج الأولى."
+      );
 
-        setError(
-            "من فضلك اختر جهة الإنتاج الأولى."
-        );
-
-    return;
+      return false;
     }
-
 
     // القطاع
+
     if (!sector.trim()) {
+      setError(
+        "من فضلك اختر القطاع."
+      );
 
-        setError(
-            "من فضلك اختر القطاع."
-        );
-
-    return;
+      return false;
     }
-
 
     // اسم المنتج
+
     if (!productName.trim()) {
+      setError(
+        "من فضلك أدخل اسم المنتج."
+      );
 
-        setError(
-            "من فضلك أدخل اسم المنتج."
-        );
-
-    return;
+      return false;
     }
-
 
     // ملف الفيديو
+
     if (!videoFile) {
+      setError(
+        "من فضلك اختر ملف الفيديو."
+      );
 
-        setError(
-            "من فضلك اختر ملف الفيديو."
-        );
-
-    return;
+      return false;
     }
 
-    // ==================================================
-    // FORMDATA
-    // ==================================================
+    return true;
+  };
+
+  /* =======================================================
+     BUILD FORMDATA
+  ======================================================= */
+
+  const buildFormData = (): FormData => {
+    if (!videoFile) {
+      throw new Error(
+        "Video file is required."
+      );
+    }
 
     const formData =
       new FormData();
 
-    // ==================================================
-    // VIDEO INFORMATION
-    // ==================================================
+    /* -----------------------------------------------------
+       VIDEO INFORMATION
+    ----------------------------------------------------- */
 
     formData.append(
       "date",
@@ -587,38 +752,38 @@ export function useVideoForm() {
       title
     );
 
-    // ==================================================
-    // PRODUCTION
-    // ==================================================
+    /* -----------------------------------------------------
+       PRODUCTION
+    ----------------------------------------------------- */
 
-    if (production1) {
+    if (production1.trim()) {
       formData.append(
         "production1",
         production1
       );
     }
 
-    if (production2) {
+    if (production2.trim()) {
       formData.append(
         "production2",
         production2
       );
     }
 
-    // ==================================================
-    // SECTOR
-    // ==================================================
+    /* -----------------------------------------------------
+       SECTOR
+    ----------------------------------------------------- */
 
-    if (sector) {
+    if (sector.trim()) {
       formData.append(
         "sector",
         sector
       );
     }
 
-    // ==================================================
-    // TRANSLATION
-    // ==================================================
+    /* -----------------------------------------------------
+       TRANSLATION
+    ----------------------------------------------------- */
 
     if (translation.trim()) {
       formData.append(
@@ -627,13 +792,13 @@ export function useVideoForm() {
       );
     }
 
-    // ==================================================
-    // CONTENT TYPE
-    // ==================================================
+    /* -----------------------------------------------------
+       CONTENT TYPE
+    ----------------------------------------------------- */
 
     if (
       isAdmin &&
-      contentType
+      contentType.trim()
     ) {
       formData.append(
         "contentType",
@@ -641,18 +806,18 @@ export function useVideoForm() {
       );
     }
 
-    // ==================================================
-    // PRODUCT
-    // ==================================================
+    /* -----------------------------------------------------
+       PRODUCT
+    ----------------------------------------------------- */
 
-    if (productType) {
+    if (productType.trim()) {
       formData.append(
         "productType",
         productType
       );
     }
 
-    if (item) {
+    if (item.trim()) {
       formData.append(
         "item",
         item
@@ -673,78 +838,80 @@ export function useVideoForm() {
       );
     }
 
-    // ==================================================
-    // EVENT
-    // ==================================================
+    /* -----------------------------------------------------
+       EVENT
+    ----------------------------------------------------- */
 
-    if (eventType) {
+    if (eventType.trim()) {
       formData.append(
         "eventType",
         eventType
       );
     }
 
-    if (eventName) {
+    if (eventName.trim()) {
       formData.append(
         "eventName",
         eventName
       );
     }
 
-    // ==================================================
-    // PRODUCTION LINE
-    // ==================================================
+    /* -----------------------------------------------------
+       PRODUCTION LINE
+    ----------------------------------------------------- */
 
-    if (productionLine) {
+    if (productionLine.trim()) {
       formData.append(
         "productionLine",
         productionLine
       );
     }
 
-    // ==================================================
-    // HYMN
-    // ==================================================
+    /* -----------------------------------------------------
+       HYMN
+    ----------------------------------------------------- */
 
-    if (hymnName) {
+    if (hymnName.trim()) {
       formData.append(
         "hymnName",
         hymnName
       );
     }
 
-    // ==================================================
-    // SPEAKER
-    // ==================================================
+    /* -----------------------------------------------------
+       SPEAKER
+    ----------------------------------------------------- */
 
-    if (speakerName) {
+    if (speakerName.trim()) {
       formData.append(
         "speakerName",
         speakerName
       );
     }
 
-    // ==================================================
-    // REPEATED
-    // ==================================================
+    /* -----------------------------------------------------
+       REPEATED
+    ----------------------------------------------------- */
 
     formData.append(
       "isRepeated",
       String(isRepeated)
     );
 
-    if (repeatType) {
+    if (repeatType.trim()) {
       formData.append(
         "repeatType",
         repeatType
       );
     }
 
-    // ==================================================
-    // UPLOAD CHANNEL
-    // ==================================================
+    /* -----------------------------------------------------
+       UPLOAD CHANNEL
+    ----------------------------------------------------- */
 
-    if (mainUploadChannel) {
+    if (
+      mainUploadChannel.trim()
+    ) {
       formData.append(
         "mainUploadChannel",
         mainUploadChannel
@@ -772,9 +939,9 @@ export function useVideoForm() {
       );
     }
 
-    // ==================================================
-    // PRODUCT CONTENT
-    // ==================================================
+    /* -----------------------------------------------------
+       PRODUCT CONTENT
+    ----------------------------------------------------- */
 
     if (content1.trim()) {
       formData.append(
@@ -811,9 +978,9 @@ export function useVideoForm() {
       );
     }
 
-    // ==================================================
-    // OTHER
-    // ==================================================
+    /* -----------------------------------------------------
+       OTHER
+    ----------------------------------------------------- */
 
     formData.append(
       "duration",
@@ -834,18 +1001,18 @@ export function useVideoForm() {
       );
     }
 
-    // ==================================================
-    // VIDEO FILE
-    // ==================================================
+    /* -----------------------------------------------------
+       VIDEO FILE
+    ----------------------------------------------------- */
 
     formData.append(
       "videoFile",
       videoFile
     );
 
-    // ==================================================
-    // THUMBNAIL
-    // ==================================================
+    /* -----------------------------------------------------
+       THUMBNAIL
+    ----------------------------------------------------- */
 
     if (thumbnailFile) {
       formData.append(
@@ -854,11 +1021,46 @@ export function useVideoForm() {
       );
     }
 
-    // ==================================================
-    // SEND
-    // ==================================================
+    return formData;
+  };
+
+  /* =======================================================
+     SAVE
+  ======================================================= */
+
+  const handleSave = async () => {
+    const isValid =
+      validateForm();
+
+    if (!isValid) {
+      return;
+    }
 
     try {
+      const formData =
+        buildFormData();
+
+      console.log(
+        "Saving video..."
+      );
+
+      for (const [
+        key,
+        value,
+      ] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(
+            `${key}:`,
+            value.name
+          );
+        } else {
+          console.log(
+            `${key}:`,
+            value
+          );
+        }
+      }
+
       const result =
         await createVideo(
           formData
@@ -882,50 +1084,50 @@ export function useVideoForm() {
 
       const message =
         error?.data?.message ||
+        error?.error ||
         "حدث خطأ أثناء حفظ الفيديو.";
 
       setError(message);
     }
   };
 
-  // ==================================================
-  // RETURN
-  // ==================================================
+  /* =======================================================
+     RETURN
+  ======================================================= */
 
   return {
-    // --------------------------------------------------
-    // ADMIN
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       ADMIN
+    ----------------------------------------------------- */
 
     isAdmin,
-    // currentUserId,
 
-    // --------------------------------------------------
-    // REFS
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       REFS
+    ----------------------------------------------------- */
 
     videoInputRef,
     thumbnailInputRef,
     dateInputRef,
 
-    // --------------------------------------------------
-    // LAYOUT
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       LAYOUT
+    ----------------------------------------------------- */
 
     formLayout,
     changeFormLayout,
 
-    // --------------------------------------------------
-    // DATE
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       DATE
+    ----------------------------------------------------- */
 
     date,
     setDate,
     openDatePicker,
 
-    // --------------------------------------------------
-    // VIDEO
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       VIDEO
+    ----------------------------------------------------- */
 
     videoFile,
     videoUrl,
@@ -934,9 +1136,9 @@ export function useVideoForm() {
     handleVideoSelect,
     handleRemoveVideo,
 
-    // --------------------------------------------------
-    // THUMBNAIL
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       THUMBNAIL
+    ----------------------------------------------------- */
 
     thumbnailFile,
     thumbnailUrl,
@@ -944,16 +1146,16 @@ export function useVideoForm() {
     handleThumbnailSelect,
     handleRemoveThumbnail,
 
-    // --------------------------------------------------
-    // VIDEO INFORMATION
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       VIDEO INFORMATION
+    ----------------------------------------------------- */
 
     title,
     setTitle,
 
-    // --------------------------------------------------
-    // PRODUCTION
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       PRODUCTION
+    ----------------------------------------------------- */
 
     production1,
     setProduction1,
@@ -967,9 +1169,9 @@ export function useVideoForm() {
     productEntitiesTwo,
     productEntitiesTwoIsLoading,
 
-    // --------------------------------------------------
-    // SECTOR
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       SECTOR
+    ----------------------------------------------------- */
 
     sector,
     setSector,
@@ -977,16 +1179,19 @@ export function useVideoForm() {
     sectors,
     sectorsIsLoading,
 
-    // --------------------------------------------------
-    // TRANSLATION
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       TRANSLATION
+    ----------------------------------------------------- */
 
     translation,
     setTranslation,
 
-    // --------------------------------------------------
-    // CONTENT TYPE
-    // --------------------------------------------------
+    translations,
+    translationsIsLoading,
+
+    /* -----------------------------------------------------
+       CONTENT TYPE
+    ----------------------------------------------------- */
 
     contentType,
     setContentType,
@@ -994,9 +1199,9 @@ export function useVideoForm() {
     contentTypes,
     contentTypesIsLoading,
 
-    // --------------------------------------------------
-    // PRODUCT
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       PRODUCT
+    ----------------------------------------------------- */
 
     productType,
     setProductType,
@@ -1016,9 +1221,9 @@ export function useVideoForm() {
     items,
     itemsIsLoading,
 
-    // --------------------------------------------------
-    // EVENT
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       EVENT
+    ----------------------------------------------------- */
 
     eventType,
     setEventType,
@@ -1032,9 +1237,9 @@ export function useVideoForm() {
     events,
     eventsIsLoading,
 
-    // --------------------------------------------------
-    // PRODUCTION LINE
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       PRODUCTION LINE
+    ----------------------------------------------------- */
 
     productionLine,
     setProductionLine,
@@ -1042,9 +1247,9 @@ export function useVideoForm() {
     productionLines,
     productionLinesIsLoading,
 
-    // --------------------------------------------------
-    // HYMN
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       HYMN
+    ----------------------------------------------------- */
 
     hymnName,
     setHymnName,
@@ -1052,9 +1257,9 @@ export function useVideoForm() {
     songs,
     songsIsLoading,
 
-    // --------------------------------------------------
-    // SPEAKER
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       SPEAKER
+    ----------------------------------------------------- */
 
     speakerName,
     setSpeakerName,
@@ -1062,9 +1267,9 @@ export function useVideoForm() {
     speakers,
     speakersIsLoading,
 
-    // --------------------------------------------------
-    // REPEATED
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       REPEATED
+    ----------------------------------------------------- */
 
     isRepeated,
     setIsRepeated,
@@ -1072,9 +1277,9 @@ export function useVideoForm() {
     repeatType,
     setRepeatType,
 
-    // --------------------------------------------------
-    // CHANNELS
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       CHANNELS
+    ----------------------------------------------------- */
 
     mainUploadChannel,
     setMainUploadChannel,
@@ -1088,9 +1293,9 @@ export function useVideoForm() {
     instagramLink,
     setInstagramLink,
 
-    // --------------------------------------------------
-    // CONTENT
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       CONTENT
+    ----------------------------------------------------- */
 
     content1,
     setContent1,
@@ -1107,9 +1312,9 @@ export function useVideoForm() {
     content5,
     setContent5,
 
-    // --------------------------------------------------
-    // OTHER
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       OTHER
+    ----------------------------------------------------- */
 
     description,
     setDescription,
@@ -1117,22 +1322,22 @@ export function useVideoForm() {
     notes,
     setNotes,
 
-    // --------------------------------------------------
-    // ERROR
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       ERROR
+    ----------------------------------------------------- */
 
     error,
 
-    // --------------------------------------------------
-    // SAVE
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       SAVE
+    ----------------------------------------------------- */
 
     isSaving,
     handleSave,
 
-    // --------------------------------------------------
-    // REFRESH
-    // --------------------------------------------------
+    /* -----------------------------------------------------
+       REFRESH
+    ----------------------------------------------------- */
 
     handleRefresh,
   };
