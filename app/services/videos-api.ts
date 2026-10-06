@@ -47,11 +47,11 @@ export const videosApi = createApi({
     // ==============================
     // GET ALL VIDEOS
     // ==============================
-    getAllVideos: builder.query<any, { page?: number; limit?: number; search?: string, dateFrom?: string; dateTo?: string; }>({
-      query: ({ page = 1, limit = 20, search = "", dateFrom = "", dateTo = "" }) => ({
+    getAllVideos: builder.query<any, { page?: number; limit?: number; search?: string, dateFrom?: string; dateTo?: string; sortBy?: "Code" | "ItemName" | "TDate" | "Item" | "Sector" | "ProdEntity1"; sortOrder?: "asc" | "desc"; videoSearch?: string; itemSearch?: string; sectorSearch?: string; productionSearch?: string; }>({
+      query: ({ page = 1, limit = 20, search = "", dateFrom = "", dateTo = "", sortBy = "Item", sortOrder = "asc", videoSearch = "", itemSearch = "", sectorSearch = "", productionSearch = "", }) => ({
         url: "/api/videos",
         method: "GET",
-        params: { page, limit, search, dateFrom , dateTo },
+        params: { page, limit, search, dateFrom , dateTo, sortBy, sortOrder, videoSearch, itemSearch, sectorSearch, productionSearch },
       }),
 
       providesTags: ["Videos"],
@@ -62,11 +62,11 @@ export const videosApi = createApi({
     GET MY VIDEOS
     GET /api/videos/my
     ===================================================== */
-    getMyVideos: builder.query<any, { page?: number; limit?: number; search?: string, dateFrom?: string; dateTo?: string; }>({
-      query: ({ page = 1, limit = 20, search = "", dateFrom = "", dateTo = "" }) => ({
+    getMyVideos: builder.query<any, { page?: number; limit?: number; search?: string, dateFrom?: string; dateTo?: string; sortBy?: "Code" | "ItemName" | "TDate" | "Item" | "Sector" | "ProdEntity1"; sortOrder?: "asc" | "desc"; videoSearch?: string; itemSearch?: string; sectorSearch?: string; productionSearch?: string; }>({
+      query: ({ page = 1, limit = 20, search = "", dateFrom = "", dateTo = "", sortBy = "Item", sortOrder = "asc", videoSearch = "", itemSearch = "", sectorSearch = "", productionSearch = "", }) => ({
         url: "/api/videos/my",
         method: "GET",
-        params: { page, limit, search, dateFrom , dateTo },
+        params: { page, limit, search, dateFrom , dateTo, sortBy, sortOrder, videoSearch, itemSearch, sectorSearch, productionSearch },
       }),
 
       providesTags: ["Videos"],

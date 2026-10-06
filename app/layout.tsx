@@ -59,7 +59,7 @@ export default function RootLayout({
                     dir="rtl"
                     richColors
                     closeButton
-                    duration={4000}
+                    duration={2000}
                     expand={false}
                     visibleToasts={4}
                     toastOptions={{

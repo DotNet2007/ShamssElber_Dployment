@@ -36,11 +36,35 @@ export const videosDropdownAPI = createApi({
     }),
 
     // =====================================================
+    // ADD PRODUCT ENTITY ONE
+    // =====================================================
+
+    addProductEntityOne: builder.mutation<any, { DescA: string }>({
+      query: (body) => ({
+        url: "/api/dropdown/admin/product-entity-one",
+        method: "POST",
+        body,
+      }),
+    }),
+
+    // =====================================================
     // PRODUCT ENTITY TWO
     // =====================================================
 
     getProductEntityTwo: builder.query<any[], void>({
       query: () => "/api/dropdown/product-entity-two",
+    }),
+
+    // =====================================================
+    // ADD PRODUCT ENTITY TWO
+    // =====================================================
+
+    addProductEntityTwo: builder.mutation<any, { DescA: string }>({
+      query: (body) => ({
+        url: "/api/dropdown/admin/product-entity-two",
+        method: "POST",
+        body,
+      }),
     }),
 
     // =====================================================
@@ -52,11 +76,35 @@ export const videosDropdownAPI = createApi({
     }),
 
     // =====================================================
+    // ADD SECTOR
+    // =====================================================
+
+    addSector: builder.mutation<any, { DescA: string }>({
+      query: (body) => ({
+        url: "/api/dropdown/admin/sectors",
+        method: "POST",
+        body,
+      }),
+    }),
+
+    // =====================================================
     // ITEM TYPES
     // =====================================================
 
     getItemTypes: builder.query<any[], void>({
       query: () => "/api/dropdown/item-types",
+    }),
+
+    // =====================================================
+    // ADD ITEM TYPE
+    // =====================================================
+
+    addItemType: builder.mutation<any, { DescA: string }>({
+      query: (body) => ({
+        url: "/api/dropdown/admin/item-types",
+        method: "POST",
+        body,
+      }),
     }),
 
     // =====================================================
@@ -68,11 +116,35 @@ export const videosDropdownAPI = createApi({
     }),
 
     // =====================================================
+    // ADD EVENT TYPE
+    // =====================================================
+
+    addEventType: builder.mutation<any, { DescA: string }>({
+      query: (body) => ({
+        url: "/api/dropdown/admin/event-types",
+        method: "POST",
+        body,
+      }),
+    }),
+
+    // =====================================================
     // PRODUCT LINES
     // =====================================================
 
     getProdLines: builder.query<any[], void>({
       query: () => "/api/dropdown/product-lines",
+    }),
+
+    // =====================================================
+    // ADD PRODUCT LINE
+    // =====================================================
+
+    addProdLine: builder.mutation<any, { DescA: string }>({
+      query: (body) => ({
+        url: "/api/dropdown/admin/product-lines",
+        method: "POST",
+        body,
+      }),
     }),
 
     // =====================================================
@@ -83,6 +155,16 @@ export const videosDropdownAPI = createApi({
       query: () => "/api/dropdown/events",
     }),
 
+    addEvent: builder.mutation<any, { DescA: string }>({
+      query: (body) => ({
+        url: "/api/dropdown/events",
+        method: "POST",
+        body,
+      }),
+    }),
+
+
+
     // =====================================================
     // SONGS
     // =====================================================
@@ -92,11 +174,36 @@ export const videosDropdownAPI = createApi({
     }),
 
     // =====================================================
+    // ADD SONG
+    // =====================================================
+
+    addSong: builder.mutation<any, { DescA: string }>({
+      query: (body) => ({
+        url: "/api/dropdown/admin/songs",
+        method: "POST",
+        body,
+      }),
+    }),
+
+
+    // =====================================================
     // SPEAKERS
     // =====================================================
 
     getSpeakers: builder.query<any[], void>({
       query: () => "/api/dropdown/speakers",
+    }),
+
+    // =====================================================
+    // ADD SPEAKER
+    // =====================================================
+
+    addSpeaker: builder.mutation<any, { DescA: string }>({
+      query: (body) => ({
+        url: "/api/dropdown/admin/speakers",
+        method: "POST",
+        body,
+      }),
     }),
 
 
@@ -109,11 +216,55 @@ export const videosDropdownAPI = createApi({
     }),
 
     // =====================================================
+    // ADD ITEM
+    // =====================================================
+
+    addItem: builder.mutation<any, { DescA: string }>({
+      query: (body) => ({
+        url: "/api/dropdown/admin/items",
+        method: "POST",
+        body,
+      }),
+    }),
+
+    // =====================================================
     // ITEMS SERIALIZATION 
     // =====================================================
 
     getItemsSer: builder.query<any[], void>({
       query: () => "/api/dropdown/items-ser",
+    }),
+
+    // =====================================================
+    // ADD ITEM SERIAL
+    // =====================================================
+
+    addItemSer: builder.mutation<any, { DescA: string }>({
+      query: (body) => ({
+        url: "/api/dropdown/admin/items-ser",
+        method: "POST",
+        body,
+      }),
+    }),
+
+    // =====================================================
+    // TRANSLATIONS
+    // =====================================================
+
+    getTranslations: builder.query<any[], void>({
+      query: () => "/api/dropdown/translations",
+    }),
+
+    // =====================================================
+    // ADD TRANSLATION
+    // =====================================================
+
+    addTranslation: builder.mutation<any, { DescA: string }>({
+      query: (body) => ({
+        url: "/api/dropdown/admin/translations",
+        method: "POST",
+        body,
+      }),
     }),
 
     // =====================================================
@@ -125,11 +276,15 @@ export const videosDropdownAPI = createApi({
     }),
 
     // =====================================================
-    // TRANSLATIONS
+    // ADD CHANNEL
     // =====================================================
 
-    getTranslations: builder.query<any[], void>({
-      query: () => "/api/dropdown/translations",
+    addChannel: builder.mutation<any, { DescA: string }>({
+      query: (body) => ({
+        url: "/api/dropdown/admin/channels",
+        method: "POST",
+        body,
+      }),
     }),
 
     // =====================================================
@@ -163,6 +318,21 @@ export const {
   useGetItemsSerQuery,
   useGetChannelsQuery,
   useGetTranslationsQuery,
-  useGetContentTypesQuery
+  useGetContentTypesQuery,
+
+  // POST
+  useAddProductEntityOneMutation,
+  useAddProductEntityTwoMutation,
+  useAddSectorMutation,
+  useAddItemTypeMutation,
+  useAddEventTypeMutation,
+  useAddProdLineMutation,
+  useAddEventMutation,
+  useAddSongMutation,
+  useAddSpeakerMutation,
+  useAddItemMutation,
+  useAddItemSerMutation,
+  useAddTranslationMutation,
+  useAddChannelMutation,
 
 } = videosDropdownAPI;
