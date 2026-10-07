@@ -297,7 +297,7 @@ export default function VideosCard({
 
               <th
                 className="
-                  w-[24%]
+                  w-[20%]
                   px-5
                   py-3
                   text-right
@@ -316,7 +316,7 @@ export default function VideosCard({
 
               <th
                 className="
-                  w-[18%]
+                  w-[16%]
                   px-4
                   py-3
                   text-right
@@ -335,7 +335,7 @@ export default function VideosCard({
 
               <th
                 className="
-                  w-[18%]
+                  w-[16%]
                   px-4
                   py-3
                   text-right
@@ -354,7 +354,7 @@ export default function VideosCard({
 
               <th
                 className="
-                  w-[20%]
+                  w-[16%]
                   px-4
                   py-3
                   text-right
@@ -363,6 +363,26 @@ export default function VideosCard({
                 <TableHeader
                   title="جهة الإنتاج 1"
                   sortColumn="ProdEntity1"
+                  currentSortColumn={sortBy}
+                  sortDirection={sortOrder}
+                  onSort={onSort}
+                />
+              </th>
+
+              {/* STATUS */}
+
+              <th
+                className="
+                  w-[12%]
+                  px-4
+                  py-3
+                  text-right
+                "
+              >
+                <TableHeader
+                  title="الحاله"
+                  sortColumn="Sector"
+                  // sortColumn="RecordStatus"
                   currentSortColumn={sortBy}
                   sortDirection={sortOrder}
                   onSort={onSort}
@@ -451,22 +471,6 @@ export default function VideosCard({
                 />
               </th>
 
-              {/* DATE */}
-
-              <th
-                className="
-                    bg-transparent
-                    px-3
-                    py-2
-                "
-                >
-                <div className="flex items-center justify-center">
-                    <CalendarDays
-                    size={14}
-                    className="text-slate-400"
-                    />
-                </div>
-                </th>
             </tr>
           </thead>
 
@@ -1169,6 +1173,12 @@ function VideoRow({
         />
       </td>
 
+      {/* ================= STATUS ================= */}
+
+      <td className="max-w-0 px-4 py-4">
+        <StatusBadge status={video.RecordStatus} />
+      </td>
+
       {/* ================= DATE ================= */}
 
       <td
@@ -1402,6 +1412,43 @@ function VideoMobileCard({
   );
 }
 
+
+function StatusBadge({
+  status,
+}: {
+  status: string | null | undefined;
+}) {
+  const normalizedStatus = String(status ?? "")
+    .trim()
+    .toUpperCase();
+
+  const isDraft = normalizedStatus === "DRAFT";
+
+  return (
+    <span
+      className={`
+        inline-flex
+        items-center
+        justify-center
+        rounded-full
+        px-3
+        py-1.5
+        text-[11px]
+        font-semibold
+        whitespace-nowrap
+        ${
+          isDraft
+            ? "bg-amber-50 text-amber-600"
+            : "bg-emerald-50 text-emerald-600"
+        }
+      `}
+    >
+      {isDraft ? "مسودة" : "تم الإرسال"}
+    </span>
+  );
+}
+
+
 /* =========================================================
    INFO CELL
    ========================================================= */
@@ -1498,7 +1545,7 @@ function EmptyTableRow() {
   return (
     <tr>
       <td
-        colSpan={6}
+        colSpan={7}
         className="
           py-14
           text-center

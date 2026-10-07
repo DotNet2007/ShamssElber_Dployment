@@ -163,6 +163,20 @@ export const videosDropdownAPI = createApi({
       }),
     }),
 
+    // =====================================================
+    // UPDATE EVENT
+    // =====================================================
+
+    updateEvent: builder.mutation<any, { code: number; DescA: string; }>({
+      query: ({ code, DescA }) => ({
+        url: `/api/dropdown/events/${code}`,
+        method: "PATCH",
+        body: {
+          DescA,
+        },
+      }),
+    }),
+
 
 
     // =====================================================
@@ -328,6 +342,7 @@ export const {
   useAddEventTypeMutation,
   useAddProdLineMutation,
   useAddEventMutation,
+  useUpdateEventMutation,
   useAddSongMutation,
   useAddSpeakerMutation,
   useAddItemMutation,

@@ -1,12 +1,30 @@
 "use client";
 
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import type { ChangeEvent, ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import { Building2, Calendar, CalendarDays, ChevronDown, FileVideo, Folder, Globe2, Image as ImageIcon, ImagePlus, Layers, ListOrdered, Languages, Music2, Package, Plus, Save, Share2, Trash2, UploadCloud, User, Video, Workflow, Grid3X3, Grid2X2, Rows3 } from "lucide-react";
+import { Building2, Calendar, CalendarDays, ChevronDown, FileVideo, Folder, Globe2, Image as ImageIcon, ImagePlus, Layers, ListOrdered, Languages, Music2, Package, Plus, Save, Share2, Trash2, UploadCloud, User, Video, Workflow, Grid3X3, Grid2X2, Rows3, Pencil } from "lucide-react";
 
 import { formatDuration, formatFileSize } from "@/app/helpers/videoHelper";
-import { useGetChannelsQuery, useGetContentTypesQuery, useGetEventsQuery, useGetEventTypesQuery, useGetItemsQuery, useGetItemsSerQuery, useGetItemTypesQuery, useGetProdLinesQuery, useGetProductEntityOneQuery, useGetProductEntityTwoQuery, useGetSectorsQuery, useGetSongsQuery, useGetSpeakersQuery, useGetTranslationsQuery } from "@/app/services/sectors-api";
+import {
+  useGetChannelsQuery,
+  useGetContentTypesQuery,
+  useGetEventsQuery,
+  useGetEventTypesQuery,
+  useGetItemsQuery,
+  useGetItemsSerQuery,
+  useGetItemTypesQuery,
+  useGetProdLinesQuery,
+  useGetProductEntityOneQuery,
+  useGetProductEntityTwoQuery,
+  useGetSectorsQuery,
+  useGetSongsQuery,
+  useGetSpeakersQuery,
+  useGetTranslationsQuery,
+  useAddEventMutation,
+  useUpdateEventMutation,
+} from "@/app/services/sectors-api";
 import { useGetVideoByCodeQuery, useUpdateVideoMutation, useSubmitVideoMutation, useDeleteVideoMutation } from "@/app/services/videos-api";
 import { getCurrentDateTime } from "@/app/helpers/getCurentDate";
 import { getArabicDayName } from "@/app/helpers/getArabicDayName";
@@ -150,6 +168,8 @@ export default function EditVideoPage() {
   const [updateVideo, { isLoading: isSaving }] = useUpdateVideoMutation();
   const [submitVideo, { isLoading: isSubmitting }] = useSubmitVideoMutation();
   const [deleteVideo, { isLoading: isDeleting }] = useDeleteVideoMutation();
+  const [addEvent, { isLoading: isAddingEvent }] = useAddEventMutation();
+  const [updateEvent, { isLoading: isUpdatingEvent }] = useUpdateEventMutation();
 
   const video = videoResponse?.data;
 
@@ -192,6 +212,16 @@ export default function EditVideoPage() {
 
   const [eventType, setEventType] = useState("");
   const [eventName, setEventName] = useState("");
+  const [eventNameText, setEventNameText] = useState("");
+  const [originalEventNameText, setOriginalEventNameText] = useState("");
+  const [eventTextInitializedForCode, setEventTextInitializedForCode] = useState<number | null>(null);
+  const [showEventSuggestions, setShowEventSuggestions] = useState(false);
+  const filteredEvents = events.filter((event: any) =>
+    String(event.DescA ?? "")
+      .toLowerCase()
+      .includes(eventNameText.trim().toLowerCase())
+  );
+
 
   // ==================================================
   // PRODUCTION LINE
@@ -359,6 +389,67 @@ export default function EditVideoPage() {
       setThumbnailUrl(getFileUrl(video.ImageLink));
     }
   }, [video]);
+
+  // ==================================================
+  // EVENT DISPLAY NAME
+  // ==================================================
+
+  useEffect(() => {
+    if (!video) return;
+
+    const videoCode = Number(video.Code);
+
+    if (eventTextInitializedForCode === videoCode) {
+      return;
+    }
+
+    const eventCode =
+      video.Event_Code != null ? String(video.Event_Code) : "";
+
+    setEventName(eventCode);
+
+    if (!eventCode) {
+      setEventNameText("");
+      setOriginalEventNameText("");
+      setEventTextInitializedForCode(videoCode);
+      return;
+    }
+
+    // Events are loaded asynchronously. Wait until the list is available
+    // before initializing the textbox. This also prevents refetchEvents()
+    // after adding an event from overwriting the user's current text.
+    if (events.length === 0 && !eventsIsLoading && !eventsIsFetching) {
+      setEventNameText("");
+      setOriginalEventNameText("");
+      setEventTextInitializedForCode(videoCode);
+      return;
+    }
+
+    const selectedEvent = events.find(
+      (event: any) => String(event.Code) === eventCode
+    );
+
+    if (!selectedEvent) {
+      if (eventsIsLoading || eventsIsFetching) return;
+
+      setEventNameText("");
+      setOriginalEventNameText("");
+      setEventTextInitializedForCode(videoCode);
+      return;
+    }
+
+    const name = String(selectedEvent.DescA ?? "");
+
+    setEventNameText(name);
+    setOriginalEventNameText(name);
+    setEventTextInitializedForCode(videoCode);
+  }, [
+    video,
+    events,
+    eventsIsLoading,
+    eventsIsFetching,
+    eventTextInitializedForCode,
+  ]);
 
   // ==================================================
   // VIDEO SELECT
@@ -840,6 +931,24 @@ export default function EditVideoPage() {
 
     try {
 
+      // ==================================================
+      // UPDATE EVENT NAME
+      // ==================================================
+      // Existing Event -> PATCH the same Code.
+      // New Event -> it is created separately by the Add button.
+      if (
+        eventName &&
+        eventNameText.trim() &&
+        eventNameText.trim() !== originalEventNameText.trim()
+      ) {
+          await updateEvent({
+            code: Number(eventName),
+            DescA: eventNameText.trim(),
+          }).unwrap();
+
+          setOriginalEventNameText(eventNameText.trim());
+        }
+
       const result =
         await updateVideo({
           code,
@@ -853,7 +962,7 @@ export default function EditVideoPage() {
       );
 
 
-      toast.info("تم تحديث الفيديو بنجاح.");
+      toast.success("تم تحديث الفيديو بنجاح.");
 
       router.push("/videos");
 
@@ -861,10 +970,10 @@ export default function EditVideoPage() {
 
     catch (error: any) {
 
-      console.error(
-        "Update Draft Videos Error:",
-        error
-      );
+      // console.error(
+      //   "Update Draft Videos Error:",
+      //   error
+      // );
 
       console.log(formData)
 
@@ -874,9 +983,7 @@ export default function EditVideoPage() {
         "حدث خطأ أثناء تحديث الفيديو.";
 
 
-      setError(
-        message
-      );
+      toast.error(message);
 
     }
 
@@ -898,20 +1005,20 @@ export default function EditVideoPage() {
     try {
       await submitVideo(code).unwrap();
 
-      alert("تم تقديم الفيديو للمراجعة بنجاح.");
+      toast.success("تم تقديم الفيديو للمراجعة بنجاح.");
 
       router.push("/videos");
     } catch (error: any) {
-      console.error(
-        "Submit video error:",
-        error
-      );
+      // console.error(
+      //   "Submit video error:",
+      //   error
+      // );
 
       const message =
         error?.data?.message ||
         "حدث خطأ أثناء تقديم الفيديو.";
 
-      setError(message);
+      toast.error(message);
     }
   };
 
@@ -936,17 +1043,18 @@ export default function EditVideoPage() {
     try {
       await deleteVideo(code).unwrap();
 
-      alert("تم حذف الفيديو بنجاح.");
+      toast.success("تم حذف الفيديو بنجاح.");
 
       router.push("/videos");
     } catch (error: any) {
-      console.error("Delete video error:", error);
+
+      // console.error("Delete video error:", error);
 
       const message =
         error?.data?.message ||
         "حدث خطأ أثناء حذف الفيديو.";
 
-      setError(message);
+      toast.error(message);
     }
   };
 
@@ -1717,6 +1825,8 @@ export default function EditVideoPage() {
 
                         // مسح اسم الحدث عند تغيير الحالة
                         setEventName("");
+                        setEventNameText("");
+                        setShowEventSuggestions(false);
                       }}
                       className="peer sr-only"
                     />
@@ -1762,15 +1872,15 @@ export default function EditVideoPage() {
                   ========================================= */}
 
               <FormGroup label="اسم الحدث">
+
                 {isRepeated ? (
+
                   /* =========================================
                     مكرر → Dropdown
                     ========================================= */
 
                   <SelectWrapper
-                    isAdmin={isAdmin}
                     icon={<CalendarDays size={16} />}
-                 disabled={isLocked}
                   >
                     <select
                       value={eventName}
@@ -1786,42 +1896,286 @@ export default function EditVideoPage() {
                           : "اختر الحدث المكرر"}
                       </option>
 
-                      {events
-                        .filter(
-                          (event: any) =>
-                            event.IsRepeated === true
-                        )
-                        .map((event: any) => (
-                          <option
-                            key={event.Code}
-                            value={event.Code}
-                          >
-                            {event.DescA}
-                          </option>
-                        ))}
+                      {events.map((event: any) => (
+                        <option
+                          key={event.Code}
+                          value={event.Code}
+                        >
+                          {event.DescA}
+                        </option>
+                      ))}
                     </select>
                   </SelectWrapper>
+
                 ) : (
+
                   /* =========================================
-                    غير مكرر → TextBox
+                    غير مكرر → Autocomplete TextBox
                     ========================================= */
 
-                  <InputWrapper
-                    icon={<CalendarDays size={16} />}
-                  >
-                    <input
-                      type="text"
-                      value={eventName}
-                      onChange={(e) => {
-                        setEventName(e.target.value);
-                      }}
-                      placeholder="اكتب اسم الحدث"
-                      className={inputClass}
-                   disabled={isLocked}
-                    />
-                  </InputWrapper>
+                  <div className="relative w-full">
+
+                    <InputWrapper icon={<CalendarDays size={16} />}>
+
+                      <input
+                        type="text"
+                        value={eventNameText}
+
+                        onChange={(e) => {
+                          const value = e.target.value;
+
+                          setEventNameText(value);
+
+                          // Keep the existing Event Code while editing.
+                          // If the name changes, handleSave() will PATCH
+                          // the same Event instead of creating a new one.
+                          setShowEventSuggestions(
+                            value.trim().length > 0
+                          );
+                        }}
+
+                        onFocus={() => {
+                          if (eventNameText.trim()) {
+                            setShowEventSuggestions(true);
+                          }
+                        }}
+
+                        onBlur={() => {
+                          setTimeout(() => {
+                            setShowEventSuggestions(false);
+                          }, 150);
+                        }}
+
+                        placeholder="اكتب اسم الحدث"
+                        className={inputClass}
+                        disabled={isLocked}
+                      />
+
+                    </InputWrapper>
+
+
+                    {/* =========================================
+                        AUTOCOMPLETE
+                        ========================================= */}
+
+                    {showEventSuggestions && eventNameText.trim() && (
+
+                      <div
+                        className="
+                          absolute
+                          right-0
+                          left-0
+                          top-[calc(100%+6px)]
+                          z-50
+                          overflow-hidden
+                          rounded-[9px]
+                          border
+                          border-[#e6eaf0]
+                          bg-white
+                          shadow-[0_10px_30px_rgba(15,23,42,0.10)]
+                        "
+                      >
+
+                        {filteredEvents.length > 0 ? (
+
+                          /* =====================================
+                            نتائج موجودة
+                            ===================================== */
+
+                          <div className="max-h-[220px] overflow-y-auto py-1">
+
+                            {filteredEvents.map((event: any) => (
+
+                              <button
+                                key={event.Code}
+                                type="button"
+
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+
+                                  setEventNameText(event.DescA);
+                                  setEventName(String(event.Code));
+
+                                  // مهم لمعرفة هل الاسم اتغير بعد كده
+                                  setOriginalEventNameText(event.DescA);
+
+                                  setShowEventSuggestions(false);
+                                }}
+
+                                className="
+                                  flex
+                                  w-full
+                                  items-center
+                                  gap-2
+                                  px-3
+                                  py-2.5
+                                  text-right
+                                  text-xs
+                                  text-[#334155]
+                                  transition
+                                  hover:bg-[#f5f8ff]
+                                  hover:text-[#2563eb]
+                                "
+                              >
+
+                                <CalendarDays
+                                  size={14}
+                                  className="shrink-0 text-[#94a3b8]"
+                                />
+
+                                <span className="truncate">
+                                  {event.DescA}
+                                </span>
+
+                              </button>
+
+                            ))}
+
+                          </div>
+
+                        ) : (
+
+                          /* =====================================
+                            لا يوجد → إضافة جديدة
+                            ===================================== */
+
+
+                            <div className="p-3">
+
+                              <div className="mb-2 text-[11px] text-[#718096]">
+                                {eventName
+                                  ? "تم تعديل اسم الحدث"
+                                  : "لا يوجد حدث مطابق"}
+                              </div>
+
+                              <button
+                                type="button"
+                                disabled={isAddingEvent || isUpdatingEvent}
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                }}
+                                onClick={async () => {
+
+                                  const value = eventNameText.trim();
+
+                                  if (!value) return;
+
+                                  try {
+
+                                    // =========================================
+                                    // EDIT EXISTING EVENT
+                                    // =========================================
+                                    if (eventName) {
+
+                                      await updateEvent({
+                                        code: Number(eventName),
+                                        DescA: value,
+                                      }).unwrap();
+
+                                      setOriginalEventNameText(value);
+                                      setEventNameText(value);
+                                      setShowEventSuggestions(false);
+
+                                      await refetchEvents();
+
+                                      toast.success("تم تعديل الحدث بنجاح");
+
+                                      return;
+                                    }
+
+                                    // =========================================
+                                    // ADD NEW EVENT
+                                    // =========================================
+
+                                    const result = await addEvent({
+                                      DescA: value,
+                                    }).unwrap();
+
+                                    const newCode =
+                                      result?.Code ??
+                                      result?.data?.Code;
+
+                                    if (!newCode) {
+                                      toast.error(
+                                        "تمت إضافة الحدث ولكن لم يتم إرجاع الكود"
+                                      );
+                                      return;
+                                    }
+
+                                    setEventName(String(newCode));
+                                    setEventNameText(value);
+                                    setOriginalEventNameText(value);
+                                    setShowEventSuggestions(false);
+
+                                    await refetchEvents();
+
+                                    toast.success("تمت إضافة الحدث بنجاح");
+
+                                  } catch (error: any) {
+
+                                    console.error("Event Error:", error);
+
+                                    toast.error(
+                                      error?.data?.message ||
+                                      error?.data?.error ||
+                                      error?.message ||
+                                      "حدث خطأ أثناء حفظ الحدث"
+                                    );
+                                  }
+                                }}
+                                className="
+                                  flex
+                                  h-9
+                                  w-full
+                                  items-center
+                                  justify-center
+                                  gap-2
+                                  rounded-[8px]
+                                  bg-[#2563eb]
+                                  px-3
+                                  text-xs
+                                  font-semibold
+                                  text-white
+                                  transition
+                                  hover:bg-[#1d4ed8]
+                                  active:scale-[0.98]
+                                  disabled:cursor-not-allowed
+                                  disabled:opacity-50
+                                "
+                              >
+
+                                {eventName ? (
+                                  <>
+                                    <Pencil size={15} />
+
+                                    {isUpdatingEvent
+                                      ? "جاري التعديل..."
+                                      : `تعديل "${eventNameText.trim()}"`}
+                                  </>
+                                ) : (
+                                  <>
+                                    <Plus size={15} />
+
+                                    {isAddingEvent
+                                      ? "جاري الإضافة..."
+                                      : `إضافة "${eventNameText.trim()}"`}
+                                  </>
+                                )}
+
+                              </button>
+
+                            </div>
+                          )}
+
+                      </div>
+
+                    )}
+
+                  </div>
                 )}
+
               </FormGroup>
+              
             </div>
 
             
@@ -2673,7 +3027,7 @@ function FormGroup({
   required = false,
 }: {
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
   required?: boolean;
 }) {
   return (
@@ -2705,8 +3059,8 @@ function InputWrapper({
   icon,
   children,
 }: {
-  icon: React.ReactNode;
-  children: React.ReactNode;
+  icon: ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="relative w-full">
@@ -2743,8 +3097,8 @@ function SelectWrapper({
   disabled = false,
   isAdmin = false,
 }: {
-  icon: React.ReactNode;
-  children: React.ReactNode;
+  icon: ReactNode;
+  children: ReactNode;
   onAdd?: () => void;
   disabled?: boolean;
   isAdmin?: boolean;
