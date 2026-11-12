@@ -1,16 +1,21 @@
-import { ReactNode } from "react";
 
-interface FormGroupProps {
-    label: string;
-    children: ReactNode;
-    required?: boolean;
+"use client";
+
+import type { ReactNode } from "react";
+
+type FormGroupProps = {
+  label: string;
+  children: ReactNode;
+  required?: boolean;
 };
 
-
-
-export default function FormGroup({ label, children, required }: FormGroupProps) {
+export default function FormGroup({
+  label,
+  children,
+  required = false,
+}: FormGroupProps) {
   return (
-    <div className="flex flex-col gap-[7px]">
+    <div className="flex flex-col gap-1.75">
       <label className="text-xs font-semibold text-[#4a5568]">
         {label}
 
@@ -23,12 +28,9 @@ export default function FormGroup({ label, children, required }: FormGroupProps)
             *
           </span>
         )}
-
       </label>
 
       {children}
     </div>
   );
 }
-
-

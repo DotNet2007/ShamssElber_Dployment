@@ -4,31 +4,15 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import {
-  Package,
-  Building2,
-  Factory,
-  Layers3,
-  Languages,
-  Boxes,
-  CalendarDays,
-  GitBranch,
-  ListOrdered,
-  CalendarCheck,
-  Music2,
-  Mic2,
-  Radio,
-  FileText,
-  ArrowLeft,
-} from "lucide-react";
+import { Package, Building2, Factory, Layers3, Languages, Boxes, CalendarDays, GitBranch, ListOrdered, Music2, Mic2, Radio, FileText, ArrowLeft } from "lucide-react";
 
 import { useAuth } from "@/app/context/AuthContext";
 
 const dropdownCards = [
   {
-    title: "المنتجات",
-    description: "إدارة قائمة المنتجات",
-    href: "/admin/dropdowns/items",
+    title: "الأصناف",
+    description: "إدارة قائمة الأصناف",
+    href: "/categories/items",
     icon: Package,
     iconBg: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -36,7 +20,7 @@ const dropdownCards = [
   {
     title: "جهات الإنتاج الرئيسية",
     description: "إدارة جهات الإنتاج الرئيسية",
-    href: "/admin/dropdowns/production-entities",
+    href: "/categories/production-entities-one",
     icon: Factory,
     iconBg: "bg-emerald-50",
     iconColor: "text-emerald-600",
@@ -44,7 +28,7 @@ const dropdownCards = [
   {
     title: "جهات الإنتاج الثانوية",
     description: "إدارة جهات الإنتاج الثانوية",
-    href: "/admin/dropdowns/production-entities-secondary",
+    href: "/categories/production-entities-two",
     icon: Building2,
     iconBg: "bg-purple-50",
     iconColor: "text-purple-600",
@@ -52,7 +36,7 @@ const dropdownCards = [
   {
     title: "القطاعات",
     description: "إدارة قطاعات الشركة",
-    href: "/admin/dropdowns/sectors",
+    href: "/categories/sectors",
     icon: Building2,
     iconBg: "bg-amber-50",
     iconColor: "text-amber-600",
@@ -60,7 +44,7 @@ const dropdownCards = [
   {
     title: "الترجمات",
     description: "إدارة قائمة الترجمات",
-    href: "/admin/dropdowns/translations",
+    href: "/categories/translations",
     icon: Languages,
     iconBg: "bg-pink-50",
     iconColor: "text-pink-600",
@@ -68,7 +52,7 @@ const dropdownCards = [
   {
     title: "أنواع المنتجات",
     description: "إدارة أنواع المنتجات",
-    href: "/admin/dropdowns/product-types",
+    href: "/categories/product-types",
     icon: Boxes,
     iconBg: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -76,7 +60,7 @@ const dropdownCards = [
   {
     title: "أنواع الأحداث",
     description: "إدارة أنواع الأحداث",
-    href: "/admin/dropdowns/event-types",
+    href: "/categories/event-types",
     icon: Layers3,
     iconBg: "bg-emerald-50",
     iconColor: "text-emerald-600",
@@ -84,7 +68,7 @@ const dropdownCards = [
   {
     title: "خطوط الإنتاج",
     description: "إدارة خطوط الإنتاج",
-    href: "/admin/dropdowns/production-lines",
+    href: "/categories/production-lines",
     icon: GitBranch,
     iconBg: "bg-purple-50",
     iconColor: "text-purple-600",
@@ -106,16 +90,16 @@ const dropdownCards = [
     iconColor: "text-pink-600",
   },
   {
-    title: "الأناشيد",
-    description: "إدارة قائمة الأناشيد",
+    title: "الترانيم",
+    description: "إدارة قائمة الترانيم",
     href: "/admin/dropdowns/songs",
     icon: Music2,
     iconBg: "bg-blue-50",
     iconColor: "text-blue-600",
   },
   {
-    title: "المتحدثين",
-    description: "إدارة قائمة المتحدثين",
+    title: "المتكلمين",
+    description: "إدارة قائمة المتكلمين",
     href: "/admin/dropdowns/speakers",
     icon: Mic2,
     iconBg: "bg-emerald-50",
@@ -195,7 +179,7 @@ export default function DropdownManagementPage() {
       className="
         mx-auto
         w-full
-        max-w-[1200px]
+        max-w-300
         px-5
         py-12
         md:py-16
@@ -252,7 +236,7 @@ export default function DropdownManagementPage() {
               className="
                 group
                 relative
-                min-h-[190px]
+                min-h-47.5
                 overflow-hidden
                 rounded-2xl
                 border
@@ -321,7 +305,7 @@ export default function DropdownManagementPage() {
                 <p
                   className="
                     mt-2
-                    max-w-[280px]
+                    max-w-70
                     text-[13px]
                     leading-6
                     text-slate-500

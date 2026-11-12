@@ -364,7 +364,7 @@ export default function DashboardPage() {
       className="
         mx-auto
         w-full
-        max-w-[1200px]
+        max-w-400
         px-5
         py-12
         md:py-16
@@ -430,7 +430,7 @@ export default function DashboardPage() {
               className="
                 group
                 relative
-                min-h-[190px]
+                min-h-47.5
                 overflow-hidden
                 rounded-2xl
                 border
@@ -510,7 +510,7 @@ export default function DashboardPage() {
                 <p
                   className="
                     mt-2
-                    max-w-[280px]
+                    max-w-70
                     text-[13px]
                     leading-6
                     text-slate-500

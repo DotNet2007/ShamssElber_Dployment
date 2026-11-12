@@ -6,21 +6,13 @@ import { Cairo } from "next/font/google";
 
 import "./globals.css";
 
-import Navbar from "./components/Layout/navbar";
-import Footer from "./components/Layout/footer";
+// import Navbar from "./components/Layout/navbar";
+// import Footer from "./components/Layout/footer";
 import { Toaster } from "sonner";
 import { AuthProvider } from "./context/AuthContext";
 import ReduxProvider from "./providers/ReduxProvider";
 
-// const geistSans = Geist({
-//   variable: "--font-geist-sans",
-//   subsets: ["latin"],
-// });
 
-// const geistMono = Geist_Mono({
-//   variable: "--font-geist-mono",
-//   subsets: ["latin"],
-// });
 
 const cairo = Cairo({
   subsets: ["arabic"],
@@ -31,8 +23,8 @@ const cairo = Cairo({
 
 
 export const metadata: Metadata = {
-  title: "OCR Archive",
-  description: "OCR Document Management System",
+  title: "Shamss Elber Archive",
+  description: "Shamss Elber Archive Management System",
 };
 
 export default function RootLayout({
@@ -52,7 +44,7 @@ export default function RootLayout({
         {/* <Navbar /> */}
           <AuthProvider>
               <ReduxProvider>
-                <main className="flex-1">
+                <main className="flex-1 w-full">
                   {children}
                   <Toaster
                     position="top-right"

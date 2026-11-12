@@ -6,18 +6,17 @@ const rawBaseQuery = fetchBaseQuery({
 
     prepareHeaders: (headers) => {
         if (typeof window !== "undefined") {
-
             const token = localStorage.getItem("userToken");
 
             if (token) {
-                headers.set("Authorization", `Bearer ${token}`);
+            headers.set("Authorization", `Bearer ${token}`);
             }
         }
 
-        headers.set("Content-Type", "application/json");
+        headers.set("ngrok-skip-browser-warning", "true");
 
         return headers;
-    },
+        },
 });
 
 export const baseQueryWithAuthHandling: BaseQueryFn< string | FetchArgs, unknown, FetchBaseQueryError > = 

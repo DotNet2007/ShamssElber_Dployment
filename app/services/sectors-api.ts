@@ -22,22 +22,20 @@ export const videosDropdownAPI = createApi({
         "application/json"
       );
 
+      headers.set("ngrok-skip-browser-warning", "true");
+
       return headers;
     },
   }),
 
   endpoints: (builder) => ({
+
     // =====================================================
     // PRODUCT ENTITY ONE
     // =====================================================
-
     getProductEntityOne: builder.query<any[], void>({
       query: () => "/api/dropdown/product-entity-one",
     }),
-
-    // =====================================================
-    // ADD PRODUCT ENTITY ONE
-    // =====================================================
 
     addProductEntityOne: builder.mutation<any, { DescA: string }>({
       query: (body) => ({
@@ -47,17 +45,28 @@ export const videosDropdownAPI = createApi({
       }),
     }),
 
+    updateProductEntityOne: builder.mutation<any, { code: number; DescA: string }>({
+      query: ({ code, DescA }) => ({
+        url: `/api/dropdown/admin/product-entity-one/${code}`,
+        method: "PATCH",
+        body: { DescA },
+      }),
+    }),
+
+    deleteProductEntityOne: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/dropdown/admin/product-entity-one/${code}`,
+        method: "DELETE",
+      }),
+    }),
+
+
     // =====================================================
     // PRODUCT ENTITY TWO
     // =====================================================
-
     getProductEntityTwo: builder.query<any[], void>({
       query: () => "/api/dropdown/product-entity-two",
     }),
-
-    // =====================================================
-    // ADD PRODUCT ENTITY TWO
-    // =====================================================
 
     addProductEntityTwo: builder.mutation<any, { DescA: string }>({
       query: (body) => ({
@@ -67,17 +76,28 @@ export const videosDropdownAPI = createApi({
       }),
     }),
 
+    updateProductEntityTwo: builder.mutation<any, { code: number; DescA: string }>({
+      query: ({ code, DescA }) => ({
+        url: `/api/dropdown/admin/product-entity-two/${code}`,
+        method: "PATCH",
+        body: { DescA },
+      }),
+    }),
+
+    deleteProductEntityTwo: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/dropdown/admin/product-entity-two/${code}`,
+        method: "DELETE",
+      }),
+    }),
+
+
     // =====================================================
     // SECTORS
     // =====================================================
-
     getSectors: builder.query<any[], void>({
       query: () => "/api/dropdown/sectors",
     }),
-
-    // =====================================================
-    // ADD SECTOR
-    // =====================================================
 
     addSector: builder.mutation<any, { DescA: string }>({
       query: (body) => ({
@@ -87,17 +107,28 @@ export const videosDropdownAPI = createApi({
       }),
     }),
 
+    updateSector: builder.mutation<any, { code: number; DescA: string }>({
+      query: ({ code, DescA }) => ({
+        url: `/api/dropdown/admin/sectors/${code}`,
+        method: "PATCH",
+        body: { DescA },
+      }),
+    }),
+
+    deleteSector: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/dropdown/admin/sectors/${code}`,
+        method: "DELETE",
+      }),
+    }),
+
+
     // =====================================================
     // ITEM TYPES
     // =====================================================
-
     getItemTypes: builder.query<any[], void>({
       query: () => "/api/dropdown/item-types",
     }),
-
-    // =====================================================
-    // ADD ITEM TYPE
-    // =====================================================
 
     addItemType: builder.mutation<any, { DescA: string }>({
       query: (body) => ({
@@ -107,17 +138,27 @@ export const videosDropdownAPI = createApi({
       }),
     }),
 
-    // =====================================================
-    // EVENT TYPES
-    // =====================================================
+    updateItemType: builder.mutation<any, { code: number; DescA: string }>({
+      query: ({ code, DescA }) => ({
+        url: `/api/dropdown/admin/item-types/${code}`,
+        method: "PATCH",
+        body: { DescA },
+      }),
+    }),
 
-    getEventTypes: builder.query<any[], void>({
-      query: () => "/api/dropdown/event-types",
+    deleteItemType: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/dropdown/admin/item-types/${code}`,
+        method: "DELETE",
+      }),
     }),
 
     // =====================================================
-    // ADD EVENT TYPE
+    // EVENT TYPES
     // =====================================================
+    getEventTypes: builder.query<any[], void>({
+      query: () => "/api/dropdown/event-types",
+    }),
 
     addEventType: builder.mutation<any, { DescA: string }>({
       query: (body) => ({
@@ -127,17 +168,28 @@ export const videosDropdownAPI = createApi({
       }),
     }),
 
+    updateEventType: builder.mutation<any, { code: number; DescA: string }>({
+      query: ({ code, DescA }) => ({
+        url: `/api/dropdown/admin/event-types/${code}`,
+        method: "PATCH",
+        body: { DescA },
+      }),
+    }),
+
+    deleteEventType: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/dropdown/admin/event-types/${code}`,
+        method: "DELETE",
+      }),
+    }),
+
+
     // =====================================================
     // PRODUCT LINES
     // =====================================================
-
     getProdLines: builder.query<any[], void>({
       query: () => "/api/dropdown/product-lines",
     }),
-
-    // =====================================================
-    // ADD PRODUCT LINE
-    // =====================================================
 
     addProdLine: builder.mutation<any, { DescA: string }>({
       query: (body) => ({
@@ -147,10 +199,25 @@ export const videosDropdownAPI = createApi({
       }),
     }),
 
+    updateProdLine: builder.mutation<any, { code: number; DescA: string }>({
+      query: ({ code, DescA }) => ({
+        url: `/api/dropdown/admin/product-lines/${code}`,
+        method: "PATCH",
+        body: { DescA },
+      }),
+    }),
+
+    deleteProdLine: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/dropdown/admin/product-lines/${code}`,
+        method: "DELETE",
+      }),
+    }),
+
+
     // =====================================================
     // EVENTS
     // =====================================================
-
     getEvents: builder.query<any[], void>({
       query: () => "/api/dropdown/events",
     }),
@@ -163,10 +230,6 @@ export const videosDropdownAPI = createApi({
       }),
     }),
 
-    // =====================================================
-    // UPDATE EVENT
-    // =====================================================
-
     updateEvent: builder.mutation<any, { code: number; DescA: string; }>({
       query: ({ code, DescA }) => ({
         url: `/api/dropdown/events/${code}`,
@@ -177,19 +240,20 @@ export const videosDropdownAPI = createApi({
       }),
     }),
 
+    deleteEvent: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/dropdown/events/${code}`,
+        method: "DELETE",
+      }),
+    }),
 
 
     // =====================================================
     // SONGS
     // =====================================================
-
     getSongs: builder.query<any[], void>({
       query: () => "/api/dropdown/songs",
     }),
-
-    // =====================================================
-    // ADD SONG
-    // =====================================================
 
     addSong: builder.mutation<any, { DescA: string }>({
       query: (body) => ({
@@ -199,18 +263,28 @@ export const videosDropdownAPI = createApi({
       }),
     }),
 
+    updateSong: builder.mutation<any, { code: number; DescA: string }>({
+      query: ({ code, DescA }) => ({
+        url: `/api/dropdown/admin/songs/${code}`,
+        method: "PATCH",
+        body: { DescA },
+      }),
+    }),
+
+    deleteSong: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/dropdown/admin/songs/${code}`,
+        method: "DELETE",
+      }),
+    }),
+
 
     // =====================================================
     // SPEAKERS
     // =====================================================
-
     getSpeakers: builder.query<any[], void>({
       query: () => "/api/dropdown/speakers",
     }),
-
-    // =====================================================
-    // ADD SPEAKER
-    // =====================================================
 
     addSpeaker: builder.mutation<any, { DescA: string }>({
       query: (body) => ({
@@ -220,18 +294,28 @@ export const videosDropdownAPI = createApi({
       }),
     }),
 
+    updateSpeaker: builder.mutation<any, { code: number; DescA: string }>({
+      query: ({ code, DescA }) => ({
+        url: `/api/dropdown/admin/speakers/${code}`,
+        method: "PATCH",
+        body: { DescA },
+      }),
+    }),
+
+    deleteSpeaker: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/dropdown/admin/speakers/${code}`,
+        method: "DELETE",
+      }),
+    }),
+
 
     // =====================================================
     // ITEMS
     // =====================================================
-
     getItems: builder.query<any[], void>({
       query: () => "/api/dropdown/items",
     }),
-
-    // =====================================================
-    // ADD ITEM
-    // =====================================================
 
     addItem: builder.mutation<any, { DescA: string }>({
       query: (body) => ({
@@ -241,17 +325,28 @@ export const videosDropdownAPI = createApi({
       }),
     }),
 
+    updateItem: builder.mutation<any, { code: number; DescA: string }>({
+      query: ({ code, DescA }) => ({
+        url: `/api/dropdown/admin/items/${code}`,
+        method: "PATCH",
+        body: { DescA },
+      }),
+    }),
+
+    deleteItem: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/dropdown/admin/items/${code}`,
+        method: "DELETE",
+      }),
+    }),
+
+
     // =====================================================
     // ITEMS SERIALIZATION 
     // =====================================================
-
     getItemsSer: builder.query<any[], void>({
       query: () => "/api/dropdown/items-ser",
     }),
-
-    // =====================================================
-    // ADD ITEM SERIAL
-    // =====================================================
 
     addItemSer: builder.mutation<any, { DescA: string }>({
       query: (body) => ({
@@ -261,23 +356,49 @@ export const videosDropdownAPI = createApi({
       }),
     }),
 
+    updateItemSer: builder.mutation<any, { code: number; DescA: string }>({
+      query: ({ code, DescA }) => ({
+        url: `/api/dropdown/admin/items-ser/${code}`,
+        method: "PATCH",
+        body: { DescA },
+      }),
+    }),
+
+    deleteItemSer: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/dropdown/admin/items-ser/${code}`,
+        method: "DELETE",
+      }),
+    }),
+
+
     // =====================================================
     // TRANSLATIONS
     // =====================================================
-
     getTranslations: builder.query<any[], void>({
       query: () => "/api/dropdown/translations",
     }),
-
-    // =====================================================
-    // ADD TRANSLATION
-    // =====================================================
 
     addTranslation: builder.mutation<any, { DescA: string }>({
       query: (body) => ({
         url: "/api/dropdown/admin/translations",
         method: "POST",
         body,
+      }),
+    }),
+    
+    updateTranslation: builder.mutation<any, { code: number; DescA: string }>({
+      query: ({ code, DescA }) => ({
+        url: `/api/dropdown/admin/translations/${code}`,
+        method: "PATCH",
+        body: { DescA },
+      }),
+    }),
+
+    deleteTranslation: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/dropdown/admin/translations/${code}`,
+        method: "DELETE",
       }),
     }),
 
@@ -289,15 +410,26 @@ export const videosDropdownAPI = createApi({
       query: () => "/api/dropdown/channels",
     }),
 
-    // =====================================================
-    // ADD CHANNEL
-    // =====================================================
-
     addChannel: builder.mutation<any, { DescA: string }>({
       query: (body) => ({
         url: "/api/dropdown/admin/channels",
         method: "POST",
         body,
+      }),
+    }),
+
+    updateChannel: builder.mutation<any, { code: number; DescA: string }>({
+      query: ({ code, DescA }) => ({
+        url: `/api/dropdown/admin/channels/${code}`,
+        method: "PATCH",
+        body: { DescA },
+      }),
+    }),
+
+    deleteChannel: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/dropdown/admin/channels/${code}`,
+        method: "DELETE",
       }),
     }),
 
@@ -349,5 +481,34 @@ export const {
   useAddItemSerMutation,
   useAddTranslationMutation,
   useAddChannelMutation,
+
+  // UPDATE
+  useUpdateProductEntityOneMutation,
+  useUpdateProductEntityTwoMutation,
+  useUpdateSectorMutation,
+  useUpdateItemTypeMutation,
+  useUpdateEventTypeMutation,
+  useUpdateProdLineMutation,
+  useUpdateSongMutation,
+  useUpdateSpeakerMutation,
+  useUpdateItemMutation,
+  useUpdateItemSerMutation,
+  useUpdateTranslationMutation,
+  useUpdateChannelMutation,
+
+  // DELETE
+  useDeleteProductEntityOneMutation,
+  useDeleteProductEntityTwoMutation,
+  useDeleteSectorMutation,
+  useDeleteItemTypeMutation,
+  useDeleteEventTypeMutation,
+  useDeleteProdLineMutation,
+  useDeleteEventMutation,
+  useDeleteSongMutation,
+  useDeleteSpeakerMutation,
+  useDeleteItemMutation,
+  useDeleteItemSerMutation,
+  useDeleteTranslationMutation,
+  useDeleteChannelMutation,
 
 } = videosDropdownAPI;

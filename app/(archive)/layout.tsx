@@ -59,7 +59,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <div dir="rtl" className=" flex min-h-screen flex-col ">
             <Navbar />
 
-            <main className="flex-1">
+            <main className="flex-1 w-full">
                 {children}
             </main>
 

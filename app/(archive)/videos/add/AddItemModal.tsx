@@ -21,7 +21,7 @@ export default function AddItemModal({ isOpen, title, label = "الاسم", plac
   return (
     <div
       dir="rtl"
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 p-4"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-black/30 p-4"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
@@ -29,7 +29,7 @@ export default function AddItemModal({ isOpen, title, label = "الاسم", plac
       }}
     >
       <div
-        className="w-full max-w-[420px] overflow-hidden rounded-[14px] border border-[#e6eaf0] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.15)]"
+        className="w-full max-w-105 overflow-hidden rounded-[14px] border border-[#e6eaf0] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.15)]"
       >
         {/* HEADER */}
         <div className="flex items-center justify-between border-b border-[#e6eaf0] px-5 py-4">
@@ -47,7 +47,7 @@ export default function AddItemModal({ isOpen, title, label = "الاسم", plac
             type="button"
             onClick={onClose}
             aria-label="إغلاق"
-            className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[#718096] transition hover:bg-[#f5f7fa] hover:text-[#172033]"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-[#718096] transition hover:bg-[#f5f7fa] hover:text-[#172033]"
           >
             <X size={17} strokeWidth={2} />
           </button>

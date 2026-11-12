@@ -38,3 +38,30 @@ body {
     transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.25s ease !important;
 }
+
+
+html,
+body {
+  scrollbar-width: thin;
+  scrollbar-color: #64748b #f1f5f9;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 20px;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background: #2563eb;
+  border-radius: 20px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: #eff6ff;
+}
+
+
+
+
