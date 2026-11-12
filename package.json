@@ -9,8 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@base-ui/react": "^1.9.0",
     "@reduxjs/toolkit": "^2.13.0",
     "axios": "^1.20.0",
+    "class-variance-authority": "^0.7.1",
     "formik": "^2.4.9",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^1.47.0",

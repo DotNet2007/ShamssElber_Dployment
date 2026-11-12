@@ -454,7 +454,7 @@ export default function VideosCard({
             className="
               col-span-full
               flex
-              min-h-[220px]
+              min-h-55
               items-center
               justify-center
               text-sm
@@ -589,6 +589,7 @@ function VideoItemCard({
         "
       >
         {imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={imageUrl}
             alt={videoTitle}
@@ -609,7 +610,7 @@ function VideoItemCard({
               w-full
               items-center
               justify-center
-              bg-gradient-to-br
+              bg-linear-to-br
               from-slate-800
               to-slate-950
             "
@@ -664,7 +665,7 @@ function VideoItemCard({
           <Play
             size={19}
             fill="currentColor"
-            className="mr-[-2px]"
+            className="-mr-0.5"
           />
         </div>
 
@@ -772,7 +773,7 @@ function VideoItemCard({
           <span
             className="
               shrink-0
-              max-w-[120px]
+              max-w-30
               truncate
               rounded-md
               bg-slate-100
