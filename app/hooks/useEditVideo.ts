@@ -462,7 +462,13 @@ export function useEditVideo() {
 
     if (video.FileName) {
       setVideoUrl(getFileUrl(video.FileName));
+
+      console.log("FileName from API:", video.FileName);
+      console.log("Generated video URL:", getFileUrl(video.FileName));
     }
+
+    console.log("FileName from API:", video.FileName);
+console.log("Generated video URL:", getFileUrl(video.FileName));
 
     if (video.ImageLink) {
       setThumbnailUrl(getThumbnailUrl(video.ImageLink));

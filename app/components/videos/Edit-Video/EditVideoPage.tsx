@@ -8,10 +8,16 @@ import { toast } from "sonner";
 import { getApiErrorMessage } from "@/app/helpers/edit-video/editVideo.helpers";
 import { useEditVideo } from "@/app/hooks/useEditVideo";
 import { FormGroup, InputWrapper, inputClass, SelectWrapper, selectClass } from "./EditVideoFormControls";
+import { useAuth } from "@/app/context/AuthContext";
 
 
 
 export default function EditVideoPage() {
+
+  const { user, isLoading: isAuthLoading } = useAuth();
+  
+  const isViewer = user?.isViewer === true;
+  
   const {
     videoInputRef,
     thumbnailInputRef,
@@ -150,7 +156,7 @@ export default function EditVideoPage() {
     handleDelete
   } = useEditVideo();
 
-  if (authLoading || !isAuthenticated || isVideoLoading) {
+  if (authLoading || !isAuthenticated || isVideoLoading || isAuthLoading) {
     return (
       <main dir="rtl" className="mx-auto w-full max-w-300 px-5 py-17.5">
         <div className="rounded-[14px] border border-[#e6eaf0] bg-white p-8 text-center text-sm text-[#718096]">
@@ -202,7 +208,7 @@ export default function EditVideoPage() {
               تعديل الفيديو
             </h2>
 
-            {video.RecordStatus === "DRAFT" && (
+            {!isViewer && video.RecordStatus === "DRAFT" && (
               <span
                 className="
                   inline-flex
@@ -229,95 +235,87 @@ export default function EditVideoPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => {
-              if (hasUnsavedChanges) {
-                setPendingNavigation("/videos/add");
-                setShowUnsavedModal(true);
-                return;
-              }
 
-              router.push("/videos/add");
-            }}
-            // onClick={() => router.push("/videos/add")}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-          >
-            <Plus size={16} />
-            جديد
-          </button>
+          {!isViewer && (
+            <>
+              {/* NEW BUTTON */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (hasUnsavedChanges) {
+                    setPendingNavigation("/videos/add");
+                    setShowUnsavedModal(true);
+                    return;
+                  }
 
-          {canDelete && (
-            <button
-              type="button"
-              // onClick={handleDelete}
-              onClick={() => setShowDeleteModal(true)}
-              disabled={isSaving || isSubmitting || isDeleting}
-              className="
-                inline-flex h-10 items-center justify-center gap-2
-                rounded-[9px] border border-red-200 bg-white px-4
-                text-xs font-semibold text-red-600 transition
-                hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60
-              "
-            >
-              <Trash2 size={16} />
-              {isDeleting ? "جاري الحذف..." : "حذف"}
-            </button>
+                  router.push("/videos/add");
+                }}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                <Plus size={16} />
+                جديد
+              </button>
+
+              {/* DELETE BUTTON */}
+              {canDelete && (
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteModal(true)}
+                  disabled={isSaving || isSubmitting || isDeleting}
+                  className="
+                    inline-flex h-10 items-center justify-center gap-2
+                    rounded-[9px] border border-red-200 bg-white px-4
+                    text-xs font-semibold text-red-600 transition
+                    hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60
+                  "
+                >
+                  <Trash2 size={16} />
+                  {isDeleting ? "جاري الحذف..." : "حذف"}
+                </button>
+              )}
+
+              {/* SAVE BUTTON */}
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={
+                  isSaving ||
+                  isSubmitting ||
+                  isDeleting ||
+                  !canEdit ||
+                  !hasUnsavedChanges
+                }
+                className="
+                  inline-flex h-10 items-center justify-center gap-2
+                  rounded-[9px] bg-[#2563eb] px-4 text-xs font-semibold
+                  text-white transition hover:bg-[#1d4ed8]
+                  disabled:cursor-not-allowed disabled:opacity-60
+                "
+              >
+                <Save size={16} />
+                {isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}
+              </button>
+
+              {/* SUBMIT BUTTON */}
+              {video.RecordStatus === "DRAFT" && canEdit && (
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={isSaving || isSubmitting || isDeleting || !canEdit}
+                  className="
+                    inline-flex h-10 items-center justify-center gap-2
+                    rounded-[9px] bg-emerald-600 px-4 text-xs font-semibold
+                    text-white transition hover:bg-emerald-700
+                    disabled:cursor-not-allowed disabled:opacity-60
+                  "
+                >
+                  <Share2 size={16} />
+                  {isSubmitting ? "جاري التقديم..." : "تقديم"}
+                </button>
+              )}
+            </>
           )}
 
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={isSaving || isSubmitting || isDeleting || !canEdit || !hasUnsavedChanges}
-            className="
-              inline-flex
-              h-10
-              items-center
-              justify-center
-              gap-2
-              rounded-[9px]
-              bg-[#2563eb]
-              px-4
-              text-xs
-              font-semibold
-              text-white
-              transition
-              hover:bg-[#1d4ed8]
-              disabled:cursor-not-allowed
-              disabled:opacity-60
-            "
-          >
-            <Save size={16} />
-            {isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}
-          </button>
-
-          {video.RecordStatus === "DRAFT" && canEdit && (
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isSaving || isSubmitting || isDeleting || !canEdit}
-              className="
-                inline-flex
-                h-10
-                items-center
-                justify-center
-                gap-2
-                rounded-[9px]
-                bg-emerald-600
-                px-4
-                text-xs
-                font-semibold
-                text-white
-                transition
-                hover:bg-emerald-700
-                disabled:cursor-not-allowed
-                disabled:opacity-60
-              "
-            >
-              <Share2 size={16} />
-              {isSubmitting ? "جاري التقديم..." : "تقديم"}
-            </button>
-          )}
         </div>
       </div>
 
@@ -1714,48 +1712,18 @@ export default function EditVideoPage() {
           VIDEO FILE
           ================================================== */}
 
-      <section
-        className="
-          mb-5.5
-          overflow-hidden
-          rounded-[14px]
-          border
-          border-[#e6eaf0]
-          bg-white
-          shadow-[0_5px_20px_rgba(15,23,42,0.035)]
-        "
-      >
+      <section className=" mb-5.5 overflow-hidden rounded-[14px] border border-[#e6eaf0] bg-white shadow-[0_5px_20px_rgba(15,23,42,0.035)] ">
         {/* HEADER */}
-
         <div
           className="
-            flex
-            min-h-19.5
-            items-center
-            justify-between
-            gap-3
-            border-b
-            border-[#e6eaf0]
-            px-6
-            py-5
-            max-[600px]:flex-col
-            max-[600px]:items-start
+            flex min-h-19.5 items-center justify-between gap-3
+            border-b border-[#e6eaf0] px-6 py-5
+            max-[600px]:flex-col max-[600px]:items-start
             max-[600px]:px-4
           "
         >
           <div className="flex items-center gap-3">
-            <div
-              className="
-                flex
-                h-9.5
-                w-9.5
-                items-center
-                justify-center
-                rounded-[10px]
-                bg-red-50
-                text-red-500
-              "
-            >
+            <div className="flex h-9.5 w-9.5 items-center justify-center rounded-[10px] bg-red-50 text-red-500">
               <FileVideo size={20} />
             </div>
 
@@ -1765,163 +1733,280 @@ export default function EditVideoPage() {
               </h3>
 
               <span className="mt-0.5 block text-[11px] text-[#718096]">
-                اختر ملف الفيديو المراد إضافته للأرشيف
+                {isViewer ? "مشاهدة الفيديو" : "اختر ملف الفيديو المراد إضافته للأرشيف"}
               </span>
             </div>
           </div>
 
-          <span className="text-xs text-[#718096]">
-            {videoFile
-              ? videoFile.name
-              : existingVideoFileName
-                ? existingVideoFileName
-              : "لم يتم اختيار فيديو"}
-          </span>
+          {!isViewer && (
+            <span className="text-xs text-[#718096]">
+              {videoFile?.name || existingVideoFileName || "لم يتم اختيار فيديو"}
+            </span>
+          )}
         </div>
-
 
         {/* BODY */}
         <div className="p-6 max-[600px]:p-4">
-          <input
-            ref={videoInputRef}
-            type="file"
-            accept="video/mp4,video/webm,video/ogg,.mkv,.avi,.mov"
-            onChange={handleVideoSelect}
-            disabled={isLocked}
-            hidden
-          />
 
-          {/* DRAG AND DROP ZONE */}
-          <div
-            onDragOver={(event) => {
-              event.preventDefault();
-
-              if (!isLocked) {
-                setIsVideoDragging(true);
-              }
-            }}
-            onDragLeave={(event) => {
-              if (
-                !event.currentTarget.contains(
-                  event.relatedTarget as Node
-                )
-              ) {
-                setIsVideoDragging(false);
-              }
-            }}
-            onDrop={handleVideoDrop}
-            className={`
-              rounded-xl border-2 border-dashed p-3 transition-colors
-              ${
-                isVideoDragging
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-transparent"
-              }
-            `}
-          >
-            <div className="mb-3 text-center text-xs text-slate-500">
-              اسحب الفيديو من جهازك وأفلته هنا، أو اضغط لاختياره
-            </div>
-
-            {!videoFile && !existingVideoFileName ? (
-              <button
-                type="button"
-                onClick={() => videoInputRef.current?.click()}
-                disabled={isLocked}
-                className="
-                  flex min-h-57.5 w-full flex-col
-                  items-center justify-center rounded-xl
-                  border border-dashed border-[#cbd5e1]
-                  bg-[#f8fafc] px-5 text-center transition
-                  hover:border-blue-400 hover:bg-[#eff6ff]
-                  disabled:cursor-not-allowed disabled:opacity-60
-                "
-              >
-                <div
-                  className="
-                    mb-4 flex h-16 w-16 items-center justify-center
-                    rounded-full bg-[#dbeafe] text-[#2563eb]
-                  "
+          {/* VIEWER MODE */}
+          {isViewer ? (
+            videoUrl ? (
+              <div className="overflow-hidden rounded-xl border border-[#e6eaf0] bg-black">
+                <video
+                  src={videoUrl}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="max-h-162.5 w-full object-contain"
                 >
-                  <UploadCloud size={30} />
-                </div>
-
-                <h3 className="mb-1 text-sm font-bold text-[#334155]">
-                  لم يتم اختيار ملف فيديو
-                </h3>
-
-                <p className="text-xs text-[#64748b]">
-                  اضغط هنا لاختيار الفيديو من جهازك
-                </p>
-
-                <span className="mt-3 text-[11px] text-[#94a3b8]">
-                  MP4 · WebM · MOV · AVI · MKV
-                </span>
-              </button>
+                  متصفحك لا يدعم تشغيل الفيديو.
+                </video>
+              </div>
             ) : (
-              <div className="overflow-hidden rounded-xl border border-[#e6eaf0] bg-[#0f172a]">
-                <div className="flex min-h-62.5 items-center justify-center bg-black">
-                  <video
-                    src={videoUrl}
-                    controls
-                    className="max-h-125 w-full object-contain"
-                  />
-                </div>
-
-                <div className=" flex items-center justify-between gap-4 bg-white p-4 max-[600px]:flex-col max-[600px]:items-stretch " >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className=" flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-500 " > <FileVideo size={21} /></div>
-
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-[#172033]"> {videoFile ? videoFile.name : existingVideoFileName || "الفيديو الحالي"} </div>
-                      <div className="mt-1 flex gap-4 text-[11px] text-[#94a3b8]"> {videoFile ? ( <span>{formatFileSize(videoFile.size)}</span> ) : ( existingVideoFileName && ( <span>الفيديو الحالي</span> ) )} {videoDuration && <span>{videoDuration}</span>}</div>
-                    </div>
-                  </div>
-
-                  <button type="button" onClick={handleRemoveVideo} disabled={isLocked} className=" inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-3 text-xs font-semibold text-red-500 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 " > <Trash2 size={15} />حذف الفيديو</button>
+              <div className="flex min-h-64 items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-500">
+                <div className="text-center">
+                  <FileVideo size={42} className="mx-auto mb-3 text-slate-300" />
+                  لا يوجد فيديو متاح للمشاهدة
                 </div>
               </div>
-            )}
-          </div>
-        </div>
+            )
+          ) : (
 
+            /* ADMIN / EMPLOYEE MODE */
+            <>
+              <input
+                ref={videoInputRef}
+                type="file"
+                accept="video/mp4,video/webm,video/ogg,.mkv,.avi,.mov"
+                onChange={handleVideoSelect}
+                disabled={isLocked}
+                hidden
+              />
+
+              {/* DRAG AND DROP ZONE */}
+              <div
+                onDragOver={(event) => {
+                  event.preventDefault();
+
+                  if (!isLocked) {
+                    setIsVideoDragging(true);
+                  }
+                }}
+                onDragLeave={(event) => {
+                  if (
+                    !event.currentTarget.contains(
+                      event.relatedTarget as Node
+                    )
+                  ) {
+                    setIsVideoDragging(false);
+                  }
+                }}
+                onDrop={handleVideoDrop}
+                className={`
+                  rounded-xl border-2 border-dashed p-3 transition-colors
+                  ${
+                    isVideoDragging
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-transparent"
+                  }
+                `}
+              >
+                <div className="mb-3 text-center text-xs text-slate-500">
+                  اسحب الفيديو من جهازك وأفلته هنا، أو اضغط لاختياره
+                </div>
+
+                {!videoFile && !existingVideoFileName ? (
+                  <button
+                    type="button"
+                    onClick={() => videoInputRef.current?.click()}
+                    disabled={isLocked}
+                    className="
+                      flex min-h-57.5 w-full flex-col
+                      items-center justify-center rounded-xl
+                      border border-dashed border-[#cbd5e1]
+                      bg-[#f8fafc] px-5 text-center transition
+                      hover:border-blue-400 hover:bg-[#eff6ff]
+                      disabled:cursor-not-allowed disabled:opacity-60
+                    "
+                  >
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#dbeafe] text-[#2563eb]">
+                      <UploadCloud size={30} />
+                    </div>
+
+                    <h3 className="mb-1 text-sm font-bold text-[#334155]">
+                      لم يتم اختيار ملف فيديو
+                    </h3>
+
+                    <p className="text-xs text-[#64748b]">
+                      اضغط هنا لاختيار الفيديو من جهازك
+                    </p>
+
+                    <span className="mt-3 text-[11px] text-[#94a3b8]">
+                      MP4 · WebM · MOV · AVI · MKV
+                    </span>
+                  </button>
+                ) : (
+                  <div className="overflow-hidden rounded-xl border border-[#e6eaf0] bg-[#0f172a]">
+                    <div className="flex min-h-62.5 items-center justify-center bg-black">
+                      <video
+                        src={videoUrl}
+                        controls
+                        playsInline
+                        className="max-h-125 w-full object-contain"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-4 bg-white p-4 max-[600px]:flex-col max-[600px]:items-stretch">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-500">
+                          <FileVideo size={21} />
+                        </div>
+
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-semibold text-[#172033]">
+                            {videoFile?.name || existingVideoFileName || "الفيديو الحالي"}
+                          </div>
+
+                          <div className="mt-1 flex gap-4 text-[11px] text-[#94a3b8]">
+                            {videoFile && (
+                              <span>{formatFileSize(videoFile.size)}</span>
+                            )}
+
+                            {!videoFile && existingVideoFileName && (
+                              <span>الفيديو الحالي</span>
+                            )}
+
+                            {videoDuration && <span>{videoDuration}</span>}
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleRemoveVideo}
+                        disabled={isLocked}
+                        className="
+                          inline-flex h-9 shrink-0 items-center justify-center
+                          gap-2 rounded-lg border border-red-200 bg-white px-3
+                          text-xs font-semibold text-red-500 transition
+                          hover:bg-red-50 disabled:cursor-not-allowed
+                          disabled:opacity-60
+                        "
+                      >
+                        <Trash2 size={15} />
+                        حذف الفيديو
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </section>
 
       {/* ==================================================
           Thumbnail
           ================================================== */}
 
-      <section className=" mb-5.5 overflow-hidden rounded-[14px] border border-[#e6eaf0] bg-white shadow-[0_5px_20px_rgba(15,23,42,0.035)] " >
-        <div className=" flex items-center gap-3 border-b border-[#e6eaf0] px-6 py-5 max-[600px]:px-4 " >
-          <div className=" flex h-9.5 w-9.5 items-center justify-center rounded-[10px] bg-[#eff6ff] text-[#2563eb] " >
+      <section className="mb-5.5 overflow-hidden rounded-[14px] border border-[#e6eaf0] bg-white shadow-[0_5px_20px_rgba(15,23,42,0.035)]">
+        {/* HEADER */}
+        <div className="flex items-center gap-3 border-b border-[#e6eaf0] px-6 py-5 max-[600px]:px-4">
+          <div className="flex h-9.5 w-9.5 items-center justify-center rounded-[10px] bg-[#eff6ff] text-[#2563eb]">
             <ImageIcon size={20} />
           </div>
 
           <div>
-            <h3 className="text-[15px] font-bold text-[#172033]">صور تعريفية</h3>
-            <span className="mt-0.5 block text-[11px] text-[#718096]">صورة تعريفية تظهر أثناء تصفح أرشيف الفيديوهات</span>
+            <h3 className="text-[15px] font-bold text-[#172033]">
+              صور تعريفية
+            </h3>
+
+            <span className="mt-0.5 block text-[11px] text-[#718096]">
+              {isViewer
+                ? "الصورة التعريفية للفيديو"
+                : "صورة تعريفية تظهر أثناء تصفح أرشيف الفيديوهات"}
+            </span>
           </div>
         </div>
 
+        {/* BODY */}
         <div className="p-6 max-[600px]:p-4">
-          <input ref={thumbnailInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={handleThumbnailSelect} disabled={isLocked} hidden />
-          <div className=" flex items-center gap-6 max-[600px]:flex-col max-[600px]:items-stretch " >
-            <div className=" flex h-45 w-70 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-[#cbd5e1] bg-[#f8fafc] max-[600px]:w-full " >
+          {!isViewer && (
+            <input
+              ref={thumbnailInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={handleThumbnailSelect}
+              disabled={isLocked}
+              hidden
+            />
+          )}
+
+          <div className="flex items-center gap-6 max-[600px]:flex-col max-[600px]:items-stretch">
+            {/* THUMBNAIL PREVIEW */}
+            <div
+              className="
+                flex h-45 w-70 shrink-0 items-center justify-center
+                overflow-hidden rounded-xl border border-dashed
+                border-[#cbd5e1] bg-[#f8fafc]
+                max-[600px]:w-full
+              "
+            >
               {thumbnailUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={`${thumbnailUrl}`} alt="Video thumbnail" className="h-full w-full object-cover"
+                <img
+                  src={thumbnailUrl}
+                  alt="Video thumbnail"
+                  className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="flex flex-col items-center gap-2 text-[#94a3b8]"><ImagePlus size={30} /><span className="text-xs">لم يتم اختيار صورة</span>
+                <div className="flex flex-col items-center gap-2 text-[#94a3b8]">
+                  <ImagePlus size={30} />
+                  <span className="text-xs">
+                    لا توجد صورة تعريفية
+                  </span>
                 </div>
               )}
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => thumbnailInputRef.current?.click() } disabled={isLocked} className=" inline-flex h-10 items-center justify-center gap-2 rounded-[9px] border border-[#e6eaf0] bg-white px-4 text-xs font-semibold text-[#4a5568] transition hover:bg-[#eff6ff] hover:text-[#2563eb] " ><ImagePlus size={16} />اختيار صورة</button>
+            {/* ADMIN / EMPLOYEE ACTIONS */}
+            {!isViewer && (
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => thumbnailInputRef.current?.click()}
+                  disabled={isLocked}
+                  className="
+                    inline-flex h-10 items-center justify-center gap-2
+                    rounded-[9px] border border-[#e6eaf0] bg-white px-4
+                    text-xs font-semibold text-[#4a5568] transition
+                    hover:bg-[#eff6ff] hover:text-[#2563eb]
+                    disabled:cursor-not-allowed disabled:opacity-60
+                  "
+                >
+                  <ImagePlus size={16} />
+                  اختيار صورة
+                </button>
 
-              {thumbnailFile && (<button type="button" onClick={handleRemoveThumbnail} disabled={isLocked} className=" inline-flex h-10 items-center justify-center gap-2 rounded-[9px] border border-red-200 bg-white px-4 text-xs font-semibold text-red-500 transition hover:bg-red-50 " ><Trash2 size={16} />حذف الصورة</button>)}
-            </div>
+                {thumbnailFile && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveThumbnail}
+                    disabled={isLocked}
+                    className="
+                      inline-flex h-10 items-center justify-center gap-2
+                      rounded-[9px] border border-red-200 bg-white px-4
+                      text-xs font-semibold text-red-500 transition
+                      hover:bg-red-50 disabled:cursor-not-allowed
+                      disabled:opacity-60
+                    "
+                  >
+                    <Trash2 size={16} />
+                    حذف الصورة
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>

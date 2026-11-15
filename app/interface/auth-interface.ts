@@ -3,6 +3,7 @@ export interface User {
   userName: string;
   companyCode: number;
   isAdmin: boolean;
+  isViewer: boolean;
 }
 
 export interface AuthContextType {

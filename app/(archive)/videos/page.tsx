@@ -10,11 +10,16 @@ import {
   useGetMyVideosQuery,
 } from "@/app/services/videos-api";
 import VideosCard, { SortColumn, SortDirection, VideoColumnSearch } from "./new/VideosCard";
+import { useAuth } from "@/app/context/AuthContext";
 
 
 
 export default function VideosPage() {
   const router = useRouter()
+
+  const { user, isLoading: isAuthLoading } = useAuth();
+
+  const isViewer = user?.isViewer === true;
 
   // =========================================================
   // ACTIVE FILTER
@@ -318,15 +323,14 @@ export default function VideosPage() {
   // =========================================================
 
   const handleMyVideos = () => {
+    if (isViewer) return;
+
     setActiveFilter("mine");
     setCurrentPage(1);
   };
 
-  // =========================================================
-  // LOADING SCREEN
-  // =========================================================
 
-  if (isLoading) {
+  if (isAuthLoading || isLoading) {
     return (
       <main
         dir="rtl"
@@ -362,6 +366,47 @@ export default function VideosPage() {
       </main>
     );
   }
+
+  // =========================================================
+  // LOADING SCREEN
+  // =========================================================
+
+  // if (isLoading) {
+  //   return (
+  //     <main
+  //       dir="rtl"
+  //       className="
+  //         mx-auto
+  //         w-full
+  //         max-w-300
+  //         px-5
+  //         py-17.5
+  //         max-[768px]:px-3
+  //         max-[768px]:py-8.75
+  //       "
+  //     >
+  //       <VideoHeader />
+
+  //       <div
+  //         className="
+  //           mt-6
+  //           flex
+  //           min-h-75
+  //           items-center
+  //           justify-center
+  //           rounded-2xl
+  //           border
+  //           border-gray-200
+  //           bg-white
+  //         "
+  //       >
+  //         <div className="text-sm text-gray-500">
+  //           جاري تحميل الفيديوهات...
+  //         </div>
+  //       </div>
+  //     </main>
+  //   );
+  // }
 
   // =========================================================
   // ERROR SCREEN
@@ -456,6 +501,7 @@ export default function VideosPage() {
           ===================================================== */}
 
       <VideosCard
+        isViewer={isViewer}
         videos={displayedVideos}
         search={searchText}
         dateFrom={dateFrom}
