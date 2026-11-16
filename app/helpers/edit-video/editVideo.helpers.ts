@@ -120,46 +120,46 @@ export function isValidThumbnailFile(file: File): boolean {
 
 const API_URL = (
   process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:5000"
+  ""
 ).replace(/\/+$/, "");
 
-const LAN_API_URL = (
-  process.env.NEXT_PUBLIC_LAN_API_URL ||
-  "http://192.168.1.126:5000"
-).replace(/\/+$/, "");
+// const LAN_API_URL = (
+//   process.env.NEXT_PUBLIC_LAN_API_URL ||
+//   "http://192.168.1.126:5000"
+// ).replace(/\/+$/, "");
 
-function isPrivateNetwork(hostname: string): boolean {
-  if (
-    hostname === "localhost" ||
-    hostname === "127.0.0.1"
-  ) {
-    return true;
-  }
+// function isPrivateNetwork(hostname: string): boolean {
+//   if (
+//     hostname === "localhost" ||
+//     hostname === "127.0.0.1"
+//   ) {
+//     return true;
+//   }
 
-  const match = hostname.match(
-    /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
-  );
+//   const match = hostname.match(
+//     /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+//   );
 
-  if (!match) return false;
+//   if (!match) return false;
 
-  const [a, b] = match.slice(1, 3).map(Number);
+//   const [a, b] = match.slice(1, 3).map(Number);
 
-  return (
-    a === 10 ||
-    a === 192 && b === 168 ||
-    a === 172 && b >= 16 && b <= 31
-  );
-}
+//   return (
+//     a === 10 ||
+//     a === 192 && b === 168 ||
+//     a === 172 && b >= 16 && b <= 31
+//   );
+// }
 
-export function getVideoApiUrl(): string {
-  if (typeof window === "undefined") {
-    return API_URL;
-  }
+// export function getVideoApiUrl(): string {
+//   if (typeof window === "undefined") {
+//     return API_URL;
+//   }
 
-  return isPrivateNetwork(window.location.hostname)
-    ? LAN_API_URL
-    : API_URL;
-}
+//   return isPrivateNetwork(window.location.hostname)
+//     ? LAN_API_URL
+//     : API_URL;
+// }
 
 
 export function getThumbnailUrl(
@@ -206,11 +206,13 @@ export function getFileUrl(
     return value;
   }
 
-  const baseUrl = getVideoApiUrl();
+  // const baseUrl = getVideoApiUrl();
 
   if (value.startsWith("/")) {
-    return `${baseUrl}${value}`;
+    return `${process.env.NEXT_PUBLIC_API_URL}${value}`;
+    // return `${baseUrl}${value}`;
   }
 
-  return `${baseUrl}/uploads/videos/${encodeURIComponent(value)}`;
+  return `${process.env.NEXT_PUBLIC_API_URL}/uploads/videos/${encodeURIComponent(value)}`;
+  // return `${baseUrl}/uploads/videos/${encodeURIComponent(value)}`;
 }

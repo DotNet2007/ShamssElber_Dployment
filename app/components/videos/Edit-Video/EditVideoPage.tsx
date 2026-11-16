@@ -346,7 +346,8 @@ export default function EditVideoPage() {
           VIDEO INFORMATION
           ================================================== */}
 
-      <section
+      {!isViewer && (
+              <section
         className="
           mb-5.5
           overflow-hidden
@@ -1551,12 +1552,16 @@ export default function EditVideoPage() {
 
         </div>
       </section>
+      )}
+
+
 
       {/* ==================================================
           محتوى المنتج
           ================================================== */}
 
-      <section
+      {!isViewer && (
+              <section
         className="
           mt-5
           overflow-hidden
@@ -1707,6 +1712,8 @@ export default function EditVideoPage() {
           </div>
         </div>
       </section>
+      )}
+
 
       {/* ==================================================
           VIDEO FILE
@@ -1909,7 +1916,8 @@ export default function EditVideoPage() {
           Thumbnail
           ================================================== */}
 
-      <section className="mb-5.5 overflow-hidden rounded-[14px] border border-[#e6eaf0] bg-white shadow-[0_5px_20px_rgba(15,23,42,0.035)]">
+      {!isViewer && (
+              <section className="mb-5.5 overflow-hidden rounded-[14px] border border-[#e6eaf0] bg-white shadow-[0_5px_20px_rgba(15,23,42,0.035)]">
         {/* HEADER */}
         <div className="flex items-center gap-3 border-b border-[#e6eaf0] px-6 py-5 max-[600px]:px-4">
           <div className="flex h-9.5 w-9.5 items-center justify-center rounded-[10px] bg-[#eff6ff] text-[#2563eb]">
@@ -2010,6 +2018,8 @@ export default function EditVideoPage() {
           </div>
         </div>
       </section>
+      )}
+
 
 
 
