@@ -2299,6 +2299,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Download,
+  RefreshCw,
 } from "lucide-react";
 
 import { formatFileSize } from "@/app/helpers/videoHelper";
@@ -2539,7 +2540,10 @@ export default function EditVideoPage() {
     handleServerPageChange,
     handleServerVideoSelect,
 
-    handleDownloadVideo
+    handleDownloadVideo,
+    uploadProgress,
+    uploadPhase,
+    isSavingUpdate
   } = useEditVideo();
 
   // ==================================================
@@ -2691,7 +2695,8 @@ export default function EditVideoPage() {
                   isSubmitting ||
                   isDeleting ||
                   !canEdit ||
-                  !hasUnsavedChanges
+                  !hasUnsavedChanges ||
+                  isSavingUpdate
                 }
                 className="
                   inline-flex h-10 items-center justify-center gap-2
@@ -2744,6 +2749,57 @@ export default function EditVideoPage() {
         >
           {error}
         </div>
+      )}
+
+
+      {/* ==================================================
+          DEVICE VIDEO UPLOAD PROGRESS
+          ================================================== */}
+
+      {isSavingUpdate && videoFile && (
+        <section className="mb-5 overflow-hidden rounded-[14px] border border-[#e6eaf0] bg-white p-5 shadow-sm">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              {uploadPhase === "processing" ? (
+                <RefreshCw
+                  size={18}
+                  className="animate-spin text-blue-600"
+                />
+              ) : (
+                <UploadCloud size={18} className="text-blue-600" />
+              )}
+
+              <span className="text-sm font-semibold text-[#172033]">
+                {uploadPhase === "processing"
+                  ? "اكتمل الرفع، جاري معالجة الفيديو..."
+                  : "جاري رفع الفيديو من الجهاز"}
+              </span>
+            </div>
+
+            <span className="text-sm font-bold tabular-nums text-blue-600">
+              {uploadProgress}%
+            </span>
+          </div>
+
+          <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="h-full rounded-full bg-blue-600 transition-all duration-200"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+
+          <div className="mt-3 flex items-center justify-between gap-3 text-xs text-[#718096]">
+            <span className="max-w-[75%] truncate">
+              {videoFile.name}
+            </span>
+
+            <span className="shrink-0">
+              {uploadPhase === "processing"
+                ? "جاري انتظار استجابة السيرفر"
+                : "رفع البيانات"}
+            </span>
+          </div>
+        </section>
       )}
 
       {/* ==================================================

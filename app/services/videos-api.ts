@@ -258,6 +258,20 @@ import { baseQueryWithAuthHandling } from "./baseQuery";
 
 export type AiPreviewStatus = "QUEUED" | "PROCESSING" | "PAUSED" | "COMPLETED" | "FAILED";
 
+
+
+interface UpdateVideoWithProgressArg {
+  code: number;
+  formData: FormData;
+  uploadId: string;
+}
+
+interface XhrUploadConfig {
+  url: string;
+  method: "POST" | "PATCH";
+}
+
+
 export interface AiPreviewStartResponse {
   success: boolean;
   data: { uploadToken: string; status: AiPreviewStatus };
@@ -351,38 +365,113 @@ type VideoUploadQueryResult =
   | { error: { status: number; data: unknown } }
   | { error: { status: "FETCH_ERROR"; error: string } };
 
+// function xhrUploadVideo(
+//   formData: FormData,
+//   uploadId: string,
+// ): Promise<VideoUploadQueryResult> {
+//   return new Promise((resolve) => {
+//     const xhr = new XMLHttpRequest();
+//     const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+
+//     if (!baseUrl) {
+//       resolve({ error: { status: "FETCH_ERROR", error: "NEXT_PUBLIC_API_URL is not configured" } });
+//       return;
+//     }
+
+//     xhr.open("POST", `${baseUrl}/api/videos`);
+
+//     const token = typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
+//     if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+//     xhr.upload.onprogress = (event) => {
+//       if (event.lengthComputable) {
+//         const percentage = Math.min(100, Math.round((event.loaded / event.total) * 100));
+//         uploadProgressListeners.get(uploadId)?.onProgress(percentage);
+//       }
+//     };
+
+//     xhr.upload.onload = () => {
+//       uploadProgressListeners.get(uploadId)?.onProgress(100);
+//       uploadProgressListeners.get(uploadId)?.onUploadComplete();
+//     };
+
+//     xhr.onload = () => {
+//       let response: unknown;
+//       try {
+//         response = JSON.parse(xhr.responseText);
+//       } catch {
+//         response = xhr.responseText;
+//       }
+
+//       if (xhr.status >= 200 && xhr.status < 300) {
+//         resolve({ data: response });
+//       } else {
+//         resolve({ error: { status: xhr.status, data: response } });
+//       }
+//     };
+
+//     xhr.onerror = () => resolve({ error: { status: "FETCH_ERROR", error: "Network error during video upload" } });
+//     xhr.onabort = () => resolve({ error: { status: "FETCH_ERROR", error: "Video upload was cancelled" } });
+//     xhr.send(formData);
+//   });
+// }
+
 function xhrUploadVideo(
   formData: FormData,
   uploadId: string,
+  config: XhrUploadConfig,
 ): Promise<VideoUploadQueryResult> {
   return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
     const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
 
     if (!baseUrl) {
-      resolve({ error: { status: "FETCH_ERROR", error: "NEXT_PUBLIC_API_URL is not configured" } });
+      resolve({
+        error: {
+          status: "FETCH_ERROR",
+          error: "NEXT_PUBLIC_API_URL is not configured",
+        },
+      });
       return;
     }
 
-    xhr.open("POST", `${baseUrl}/api/videos`);
+    xhr.open(config.method, `${baseUrl}${config.url}`);
 
-    const token = typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
-    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("userToken")
+        : null;
+
+    if (token) {
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    }
 
     xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        const percentage = Math.min(100, Math.round((event.loaded / event.total) * 100));
-        uploadProgressListeners.get(uploadId)?.onProgress(percentage);
-      }
+      if (!event.lengthComputable) return;
+
+      const percentage = Math.min(
+        100,
+        Math.round((event.loaded / event.total) * 100),
+      );
+
+      uploadProgressListeners
+        .get(uploadId)
+        ?.onProgress(percentage);
     };
 
     xhr.upload.onload = () => {
-      uploadProgressListeners.get(uploadId)?.onProgress(100);
-      uploadProgressListeners.get(uploadId)?.onUploadComplete();
+      uploadProgressListeners
+        .get(uploadId)
+        ?.onProgress(100);
+
+      uploadProgressListeners
+        .get(uploadId)
+        ?.onUploadComplete();
     };
 
     xhr.onload = () => {
       let response: unknown;
+
       try {
         response = JSON.parse(xhr.responseText);
       } catch {
@@ -392,12 +481,33 @@ function xhrUploadVideo(
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve({ data: response });
       } else {
-        resolve({ error: { status: xhr.status, data: response } });
+        resolve({
+          error: {
+            status: xhr.status,
+            data: response,
+          },
+        });
       }
     };
 
-    xhr.onerror = () => resolve({ error: { status: "FETCH_ERROR", error: "Network error during video upload" } });
-    xhr.onabort = () => resolve({ error: { status: "FETCH_ERROR", error: "Video upload was cancelled" } });
+    xhr.onerror = () => {
+      resolve({
+        error: {
+          status: "FETCH_ERROR",
+          error: "Network error during video upload",
+        },
+      });
+    };
+
+    xhr.onabort = () => {
+      resolve({
+        error: {
+          status: "FETCH_ERROR",
+          error: "Video upload was cancelled",
+        },
+      });
+    };
+
     xhr.send(formData);
   });
 }
@@ -414,9 +524,44 @@ export const videosApi = createApi({
 
     // RTK mutation with native XHR upload progress. The Component still uses
     // RTK Query; XMLHttpRequest is encapsulated here to preserve real progress.
+    // createVideoWithProgress: builder.mutation<any, CreateVideoWithProgressArg>({
+    //   queryFn: async ({ formData, uploadId }) => xhrUploadVideo(formData, uploadId),
+    //   invalidatesTags: ["Videos"],
+    // }),
+
     createVideoWithProgress: builder.mutation<any, CreateVideoWithProgressArg>({
-      queryFn: async ({ formData, uploadId }) => xhrUploadVideo(formData, uploadId),
+      queryFn: async ({ formData, uploadId }) =>
+        xhrUploadVideo(formData, uploadId, {
+          url: "/api/videos",
+          method: "POST",
+        }),
       invalidatesTags: ["Videos"],
+    }),
+
+    updateVideoWithProgress: builder.mutation< any, UpdateVideoWithProgressArg >({
+      queryFn: async ({ code, formData, uploadId }) =>
+        xhrUploadVideo(formData, uploadId, {
+          url: `/api/videos/${code}`,
+          method: "PATCH",
+        }),
+
+      invalidatesTags: (_result, _error, { code }) => [
+        "Videos",
+        { type: "Videos", id: code },
+      ],
+    }),
+
+    adminUpdateVideoWithProgress: builder.mutation< any, UpdateVideoWithProgressArg >({
+      queryFn: async ({ code, formData, uploadId }) =>
+        xhrUploadVideo(formData, uploadId, {
+          url: `/api/videos/${code}/admin`,
+          method: "PATCH",
+        }),
+
+      invalidatesTags: (_result, _error, { code }) => [
+        "Videos",
+        { type: "Videos", id: code },
+      ],
     }),
 
     startAiPreview: builder.mutation<AiPreviewStartResponse, FormData>({
@@ -528,7 +673,11 @@ export const {
   useSubmitVideoMutation,
   useDeleteVideoMutation,
   useAdminUpdateVideoMutation,
-  useDownloadVideoMutation
+  useDownloadVideoMutation,
+
+
+  useUpdateVideoWithProgressMutation,
+  useAdminUpdateVideoWithProgressMutation,
 
 } = videosApi;
 

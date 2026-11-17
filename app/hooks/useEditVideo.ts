@@ -1779,7 +1779,11 @@ import {
   useDeleteVideoMutation,
   useAdminUpdateVideoMutation,
   useLazyGetServerVideoFilesQuery,
-  useDownloadVideoMutation,
+  useUpdateVideoWithProgressMutation,
+  useAdminUpdateVideoWithProgressMutation,
+  unregisterVideoUploadProgress,
+  registerVideoUploadProgress,
+  // useDownloadVideoMutation,
 } from "@/app/services/videos-api";
 
 import type { ServerVideoFile } from "@/app/services/videos-api";
@@ -2083,7 +2087,7 @@ export function useEditVideo() {
   const [deleteVideo, { isLoading: isDeleting }] =
     useDeleteVideoMutation();
 
-  const [downloadVideo, { isLoading: isDownloading }] = useDownloadVideoMutation();
+  // const [downloadVideo, { isLoading: isDownloading }] = useDownloadVideoMutation();
 
   const [addEvent, { isLoading: isAddingEvent }] =
     useAddEventMutation();
@@ -2092,6 +2096,14 @@ export function useEditVideo() {
     useUpdateEventMutation();
 
   const video = videoResponse?.data;
+
+
+  type UploadPhase = | "idle" | "uploading" | "processing" | "completed";
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadPhase, setUploadPhase] = useState<UploadPhase>("idle");
+
+  const [updateVideoWithProgress, { isLoading: isSavingUpdate }] = useUpdateVideoWithProgressMutation();
+  const [adminUpdateVideoWithProgress] = useAdminUpdateVideoWithProgressMutation();
 
   // ==================================================
   // PERMISSIONS / LOCK STATE
@@ -2827,7 +2839,10 @@ export function useEditVideo() {
 
     setError("");
 
-    // Validation
+    // ==================================================
+    // VALIDATION
+    // ==================================================
+
     if (!date) {
       setError("من فضلك أدخل التاريخ.");
       return;
@@ -2838,7 +2853,6 @@ export function useEditVideo() {
       return;
     }
 
-    // A video must exist, unless a replacement is selected.
     if (
       !videoFile &&
       !serverFileName &&
@@ -2850,51 +2864,26 @@ export function useEditVideo() {
       return;
     }
 
-    const formData = new FormData();
+    // ==================================================
+    // FORM DATA
+    // ==================================================
 
-    // ==================================================
-    // VIDEO INFORMATION
-    // ==================================================
+    const formData = new FormData();
 
     formData.append("date", date);
     formData.append("title", title);
     formData.append("item", item);
 
-    // ==================================================
-    // PRODUCTION
-    // ==================================================
+    if (production1) formData.append("production1", production1);
+    if (production2) formData.append("production2", production2);
 
-    if (production1) {
-      formData.append("production1", production1);
-    }
-
-    if (production2) {
-      formData.append("production2", production2);
-    }
-
-    // ==================================================
-    // SECTOR
-    // ==================================================
-
-    if (sector) {
-      formData.append("sector", sector);
-    }
-
-    // ==================================================
-    // TRANSLATION
-    // ==================================================
+    if (sector) formData.append("sector", sector);
 
     if (translation.trim()) {
       formData.append("translation", translation);
     }
 
-    // ==================================================
-    // PRODUCT
-    // ==================================================
-
-    if (productType) {
-      formData.append("productType", productType);
-    }
+    if (productType) formData.append("productType", productType);
 
     if (productName.trim()) {
       formData.append("productName", productName.trim());
@@ -2904,51 +2893,19 @@ export function useEditVideo() {
       formData.append("productSerial", productSerial);
     }
 
-    // ==================================================
-    // EVENT
-    // ==================================================
-
-    if (eventType) {
-      formData.append("eventType", eventType);
-    }
-
-    if (eventName) {
-      formData.append("eventName", eventName);
-    }
-
-    // ==================================================
-    // PRODUCTION LINE
-    // ==================================================
+    if (eventType) formData.append("eventType", eventType);
+    if (eventName) formData.append("eventName", eventName);
 
     if (productionLine) {
       formData.append("productionLine", productionLine);
     }
 
-    // ==================================================
-    // HYMN / SPEAKER
-    // ==================================================
-
-    if (hymnName) {
-      formData.append("hymnName", hymnName);
-    }
-
-    if (speakerName) {
-      formData.append("speakerName", speakerName);
-    }
-
-    // ==================================================
-    // REPEATED
-    // ==================================================
+    if (hymnName) formData.append("hymnName", hymnName);
+    if (speakerName) formData.append("speakerName", speakerName);
 
     formData.append("isRepeated", String(isRepeated));
 
-    if (repeatType) {
-      formData.append("repeatType", repeatType);
-    }
-
-    // ==================================================
-    // SOCIAL LINKS
-    // ==================================================
+    if (repeatType) formData.append("repeatType", repeatType);
 
     if (youtubeLink.trim()) {
       formData.append("youtubeLink", youtubeLink.trim());
@@ -2962,15 +2919,7 @@ export function useEditVideo() {
       formData.append("instagramLink", instagramLink.trim());
     }
 
-    // ==================================================
-    // CHANNEL
-    // ==================================================
-
     formData.append("channelName", channelName);
-
-    // ==================================================
-    // CONTENT
-    // ==================================================
 
     formData.append("contentType", contentType);
     formData.append("content1", content1);
@@ -2979,10 +2928,6 @@ export function useEditVideo() {
     formData.append("content4", content4);
     formData.append("content5", content5);
 
-    // ==================================================
-    // DURATION
-    // ==================================================
-
     formData.append("duration", videoDuration);
 
     // ==================================================
@@ -2990,14 +2935,11 @@ export function useEditVideo() {
     // ==================================================
 
     if (videoFile) {
-      // Upload from device
       formData.append("videoFile", videoFile);
     } else if (
       serverFileName &&
       serverFileName !== (video?.FileName ?? "")
     ) {
-      // Select existing video from server.
-      // Send filename only, not relativePath.
       formData.append("serverFileName", serverFileName);
     }
 
@@ -3010,6 +2952,28 @@ export function useEditVideo() {
     }
 
     // ==================================================
+    // UPLOAD PROGRESS SETUP
+    // ==================================================
+
+    const uploadId = `${code}-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}`;
+
+    setUploadProgress(0);
+    setUploadPhase(videoFile ? "uploading" : "processing");
+
+    registerVideoUploadProgress(uploadId, {
+      onProgress: (percentage) => {
+        setUploadProgress(percentage);
+      },
+
+      onUploadComplete: () => {
+        setUploadProgress(100);
+        setUploadPhase("processing");
+      },
+    });
+
+    // ==================================================
     // SEND UPDATE
     // ==================================================
 
@@ -3018,8 +2982,7 @@ export function useEditVideo() {
       if (
         eventName &&
         eventNameText.trim() &&
-        eventNameText.trim() !==
-          originalEventNameText.trim()
+        eventNameText.trim() !== originalEventNameText.trim()
       ) {
         await updateEvent({
           code: Number(eventName),
@@ -3031,16 +2994,21 @@ export function useEditVideo() {
 
       // Admin update / regular update
       if (isAdmin) {
-        await adminUpdateVideo({
+        await adminUpdateVideoWithProgress({
           code,
           formData,
+          uploadId,
         }).unwrap();
       } else {
-        await updateVideo({
+        await updateVideoWithProgress({
           code,
           formData,
+          uploadId,
         }).unwrap();
       }
+
+      setUploadProgress(100);
+      setUploadPhase("completed");
 
       toast.success("تم تحديث الفيديو بنجاح.");
 
@@ -3054,8 +3022,248 @@ export function useEditVideo() {
       );
 
       toast.error(message);
+    } finally {
+      unregisterVideoUploadProgress(uploadId);
     }
   };
+
+  // const handleSave = async () => {
+  //   if (!canEdit) {
+  //     setError("ليس لديك صلاحية لتعديل هذا الفيديو.");
+  //     return;
+  //   }
+
+  //   setError("");
+
+  //   // Validation
+  //   if (!date) {
+  //     setError("من فضلك أدخل التاريخ.");
+  //     return;
+  //   }
+
+  //   if (!productName.trim()) {
+  //     setError("من فضلك أدخل اسم المنتج.");
+  //     return;
+  //   }
+
+  //   // A video must exist, unless a replacement is selected.
+  //   if (
+  //     !videoFile &&
+  //     !serverFileName &&
+  //     !existingVideoFileName
+  //   ) {
+  //     setError(
+  //       "لا يوجد ملف فيديو حالي، من فضلك اختر ملف الفيديو."
+  //     );
+  //     return;
+  //   }
+
+  //   const formData = new FormData();
+
+  //   // ==================================================
+  //   // VIDEO INFORMATION
+  //   // ==================================================
+
+  //   formData.append("date", date);
+  //   formData.append("title", title);
+  //   formData.append("item", item);
+
+  //   // ==================================================
+  //   // PRODUCTION
+  //   // ==================================================
+
+  //   if (production1) {
+  //     formData.append("production1", production1);
+  //   }
+
+  //   if (production2) {
+  //     formData.append("production2", production2);
+  //   }
+
+  //   // ==================================================
+  //   // SECTOR
+  //   // ==================================================
+
+  //   if (sector) {
+  //     formData.append("sector", sector);
+  //   }
+
+  //   // ==================================================
+  //   // TRANSLATION
+  //   // ==================================================
+
+  //   if (translation.trim()) {
+  //     formData.append("translation", translation);
+  //   }
+
+  //   // ==================================================
+  //   // PRODUCT
+  //   // ==================================================
+
+  //   if (productType) {
+  //     formData.append("productType", productType);
+  //   }
+
+  //   if (productName.trim()) {
+  //     formData.append("productName", productName.trim());
+  //   }
+
+  //   if (productSerial.trim()) {
+  //     formData.append("productSerial", productSerial);
+  //   }
+
+  //   // ==================================================
+  //   // EVENT
+  //   // ==================================================
+
+  //   if (eventType) {
+  //     formData.append("eventType", eventType);
+  //   }
+
+  //   if (eventName) {
+  //     formData.append("eventName", eventName);
+  //   }
+
+  //   // ==================================================
+  //   // PRODUCTION LINE
+  //   // ==================================================
+
+  //   if (productionLine) {
+  //     formData.append("productionLine", productionLine);
+  //   }
+
+  //   // ==================================================
+  //   // HYMN / SPEAKER
+  //   // ==================================================
+
+  //   if (hymnName) {
+  //     formData.append("hymnName", hymnName);
+  //   }
+
+  //   if (speakerName) {
+  //     formData.append("speakerName", speakerName);
+  //   }
+
+  //   // ==================================================
+  //   // REPEATED
+  //   // ==================================================
+
+  //   formData.append("isRepeated", String(isRepeated));
+
+  //   if (repeatType) {
+  //     formData.append("repeatType", repeatType);
+  //   }
+
+  //   // ==================================================
+  //   // SOCIAL LINKS
+  //   // ==================================================
+
+  //   if (youtubeLink.trim()) {
+  //     formData.append("youtubeLink", youtubeLink.trim());
+  //   }
+
+  //   if (facebookLink.trim()) {
+  //     formData.append("facebookLink", facebookLink.trim());
+  //   }
+
+  //   if (instagramLink.trim()) {
+  //     formData.append("instagramLink", instagramLink.trim());
+  //   }
+
+  //   // ==================================================
+  //   // CHANNEL
+  //   // ==================================================
+
+  //   formData.append("channelName", channelName);
+
+  //   // ==================================================
+  //   // CONTENT
+  //   // ==================================================
+
+  //   formData.append("contentType", contentType);
+  //   formData.append("content1", content1);
+  //   formData.append("content2", content2);
+  //   formData.append("content3", content3);
+  //   formData.append("content4", content4);
+  //   formData.append("content5", content5);
+
+  //   // ==================================================
+  //   // DURATION
+  //   // ==================================================
+
+  //   formData.append("duration", videoDuration);
+
+  //   // ==================================================
+  //   // VIDEO SOURCE
+  //   // ==================================================
+
+  //   if (videoFile) {
+  //     // Upload from device
+  //     formData.append("videoFile", videoFile);
+  //   } else if (
+  //     serverFileName &&
+  //     serverFileName !== (video?.FileName ?? "")
+  //   ) {
+  //     // Select existing video from server.
+  //     // Send filename only, not relativePath.
+  //     formData.append("serverFileName", serverFileName);
+  //   }
+
+  //   // ==================================================
+  //   // THUMBNAIL
+  //   // ==================================================
+
+  //   if (thumbnailFile) {
+  //     formData.append("thumbnailFile", thumbnailFile);
+  //   }
+
+  //   // ==================================================
+  //   // SEND UPDATE
+  //   // ==================================================
+
+  //   try {
+  //     // Update existing event name if changed
+  //     if (
+  //       eventName &&
+  //       eventNameText.trim() &&
+  //       eventNameText.trim() !==
+  //         originalEventNameText.trim()
+  //     ) {
+  //       await updateEvent({
+  //         code: Number(eventName),
+  //         DescA: eventNameText.trim(),
+  //       }).unwrap();
+
+  //       setOriginalEventNameText(eventNameText.trim());
+  //     }
+
+  //     // Admin update / regular update
+  //     if (isAdmin) {
+  //       await adminUpdateVideo({
+  //         code,
+  //         formData,
+  //       }).unwrap();
+  //     } else {
+  //       await updateVideo({
+  //         code,
+  //         formData,
+  //       }).unwrap();
+  //     }
+
+  //     toast.success("تم تحديث الفيديو بنجاح.");
+
+  //     router.push("/videos");
+  //   } catch (requestError: unknown) {
+  //     console.error("Update video error:", requestError);
+
+  //     const message = getApiErrorMessage(
+  //       requestError,
+  //       "حدث خطأ أثناء تحديث الفيديو."
+  //     );
+
+  //     toast.error(message);
+  //   }
+  // };
 
   // ==================================================
   // SUBMIT VIDEO
@@ -3236,7 +3444,7 @@ export function useEditVideo() {
     existingVideoFileName,
     setExistingVideoFileName,
     handleDownloadVideo,
-    isDownloading,
+    // isDownloading,
 
     // Server video browser
     serverFileName,
@@ -3444,5 +3652,10 @@ export function useEditVideo() {
     setShowDeleteModal,
     isDeletingVideo,
     handleDelete,
+
+    uploadProgress,
+    uploadPhase,
+    isSavingUpdate,
+
   };
 }
