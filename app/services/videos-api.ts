@@ -467,10 +467,24 @@ export const videosApi = createApi({
       providesTags: (_result, _error, code) => [{ type: "Videos", id: code }],
     }),
 
+
     updateVideo: builder.mutation<any, { code: number; formData: FormData }>({
-      query: ({ code, formData }) => ({ url: `/api/videos/${code}`, method: "PUT", body: formData }),
-      invalidatesTags: (_result, _error, { code }) => ["Videos", { type: "Videos", id: code }],
+      query: ({ code, formData }) => ({
+        url: `/api/videos/${code}`,
+        method: "PATCH",
+        body: formData,
+      }),
+      invalidatesTags: (_result, _error, { code }) => [
+        "Videos",
+        { type: "Videos", id: code },
+      ],
     }),
+
+
+    // updateVideo: builder.mutation<any, { code: number; formData: FormData }>({
+    //   query: ({ code, formData }) => ({ url: `/api/videos/${code}`, method: "PATCH", body: formData }),
+    //   invalidatesTags: (_result, _error, { code }) => ["Videos", { type: "Videos", id: code }],
+    // }),
 
     submitVideo: builder.mutation<any, number>({
       query: (code) => ({ url: `/api/videos/${code}/submit`, method: "POST" }),
@@ -483,9 +497,18 @@ export const videosApi = createApi({
     }),
 
     adminUpdateVideo: builder.mutation<any, { code: number; formData: FormData }>({
-      query: ({ code, formData }) => ({ url: `/api/videos/${code}/admin`, method: "PUT", body: formData }),
+      query: ({ code, formData }) => ({ url: `/api/videos/${code}/admin`, method: "PATCH", body: formData }),
       invalidatesTags: ["Videos"],
     }),
+
+    downloadVideo: builder.mutation<Blob, number>({
+      query: (code) => ({
+        url: `api/videos/${code}/download`,
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+      }),
+    }),
+
   }),
 });
 
@@ -505,6 +528,8 @@ export const {
   useSubmitVideoMutation,
   useDeleteVideoMutation,
   useAdminUpdateVideoMutation,
+  useDownloadVideoMutation
+
 } = videosApi;
 
 

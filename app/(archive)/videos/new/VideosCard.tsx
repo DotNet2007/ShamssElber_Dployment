@@ -650,7 +650,7 @@ function ViewerVideoGrid({
               {getVideoName(video)}
             </h3>
 
-            <div className="flex items-center gap-2 text-xs text-slate-500">
+            {/* <div className="flex items-center gap-2 text-xs text-slate-500">
               <Folder size={14} className="shrink-0" />
               <span className="truncate">{getItem(video)}</span>
             </div>
@@ -665,7 +665,7 @@ function ViewerVideoGrid({
               <span className="truncate">
                 {getProductionEntity1(video)}
               </span>
-            </div>
+            </div> */}
 
             <div className="flex items-center justify-between border-t border-slate-100 pt-3">
               <span className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -674,7 +674,7 @@ function ViewerVideoGrid({
               </span>
 
               <span className="text-xs font-semibold text-blue-600">
-                مشاهدة التفاصيل ←
+                مشاهدة الفيديو ←
               </span>
             </div>
           </div>
