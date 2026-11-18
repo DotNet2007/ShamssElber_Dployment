@@ -125,17 +125,9 @@ export default function ItemsAdminPage() {
   // Keep all hooks above conditional returns.
   if (isLoading) {
     return (
-      <main
-        dir="rtl"
-        className="flex min-h-[calc(100vh-74px)] items-center justify-center"
-      >
+      <main dir="rtl" className="flex min-h-[calc(100vh-74px)] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div
-            className="
-              h-10 w-10 animate-spin rounded-full
-              border-4 border-slate-200 border-t-blue-600
-            "
-          />
+          <div className=" h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 " />
 
           <p className="text-sm text-slate-500">
             جاري التحقق من الصلاحيات...
@@ -149,11 +141,9 @@ export default function ItemsAdminPage() {
     return null;
   }
 
+
   return (
-    <main
-      dir="rtl"
-      className="mx-auto w-full max-w-300 px-5 py-12 md:py-16"
-    >
+    <main dir="rtl" className="mx-auto w-full max-w-400 px-5 py-12 md:py-16" >
       <DropdownManagement
         title="إدارة الأصناف"
         description="إضافة وتعديل وحذف الأصناف"

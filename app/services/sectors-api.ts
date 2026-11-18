@@ -442,6 +442,29 @@ export const videosDropdownAPI = createApi({
       query: () => "/api/dropdown/content-types",
     }),
 
+    addContentType: builder.mutation<any, { DescA: string }>({
+      query: (body) => ({
+        url: "/api/dropdown/admin/content-types",
+        method: "POST",
+        body,
+      }),
+    }),
+
+    updateContentType: builder.mutation<any, { code: number; DescA: string }>({
+      query: ({ code, DescA }) => ({
+        url: `/api/dropdown/admin/content-types/${code}`,
+        method: "PATCH",
+        body: { DescA },
+      }),
+    }),
+
+    deleteContentType: builder.mutation<any, number>({
+      query: (code) => ({
+        url: `/api/dropdown/admin/content-types/${code}`,
+        method: "DELETE",
+      }),
+    }),
+
   }),
 });
 
@@ -481,6 +504,7 @@ export const {
   useAddItemSerMutation,
   useAddTranslationMutation,
   useAddChannelMutation,
+  useAddContentTypeMutation,
 
   // UPDATE
   useUpdateProductEntityOneMutation,
@@ -495,6 +519,7 @@ export const {
   useUpdateItemSerMutation,
   useUpdateTranslationMutation,
   useUpdateChannelMutation,
+  useUpdateContentTypeMutation,
 
   // DELETE
   useDeleteProductEntityOneMutation,
@@ -510,5 +535,6 @@ export const {
   useDeleteItemSerMutation,
   useDeleteTranslationMutation,
   useDeleteChannelMutation,
+  useDeleteContentTypeMutation,
 
 } = videosDropdownAPI;

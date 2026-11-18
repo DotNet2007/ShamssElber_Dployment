@@ -76,7 +76,7 @@ const dropdownCards = [
   {
     title: "الأرقام التسلسلية",
     description: "إدارة الأرقام التسلسلية للمنتجات",
-    href: "/admin/dropdowns/product-serials",
+    href: "/categories/product-serials",
     icon: ListOrdered,
     iconBg: "bg-orange-50",
     iconColor: "text-orange-600",
@@ -84,7 +84,7 @@ const dropdownCards = [
   {
     title: "الأحداث",
     description: "إدارة قائمة الأحداث",
-    href: "/admin/dropdowns/events",
+    href: "/categories/events",
     icon: CalendarDays,
     iconBg: "bg-pink-50",
     iconColor: "text-pink-600",
@@ -92,7 +92,7 @@ const dropdownCards = [
   {
     title: "الترانيم",
     description: "إدارة قائمة الترانيم",
-    href: "/admin/dropdowns/songs",
+    href: "/categories/songs",
     icon: Music2,
     iconBg: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -100,7 +100,7 @@ const dropdownCards = [
   {
     title: "المتكلمين",
     description: "إدارة قائمة المتكلمين",
-    href: "/admin/dropdowns/speakers",
+    href: "/categories/speakers",
     icon: Mic2,
     iconBg: "bg-emerald-50",
     iconColor: "text-emerald-600",
@@ -108,7 +108,7 @@ const dropdownCards = [
   {
     title: "قنوات النشر",
     description: "إدارة قنوات النشر",
-    href: "/admin/dropdowns/channels",
+    href: "/categories/channels",
     icon: Radio,
     iconBg: "bg-purple-50",
     iconColor: "text-purple-600",
@@ -116,7 +116,7 @@ const dropdownCards = [
   {
     title: "أنواع المحتوى",
     description: "إدارة أنواع المحتوى",
-    href: "/admin/dropdowns/content-types",
+    href: "/categories/content-types",
     icon: FileText,
     iconBg: "bg-amber-50",
     iconColor: "text-amber-600",
@@ -179,7 +179,7 @@ export default function DropdownManagementPage() {
       className="
         mx-auto
         w-full
-        max-w-300
+        max-w-400
         px-5
         py-12
         md:py-16
