@@ -54,3 +54,17 @@ export function formatFileSize(bytes: number) {
     index === 0 ? 0 : 2
   )} ${units[index]}`;
 }
+
+
+export function formatServerDate(value: string) {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleString("ar-EG", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}

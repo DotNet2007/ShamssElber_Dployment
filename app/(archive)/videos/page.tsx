@@ -11,6 +11,7 @@ import {
 } from "@/app/services/videos-api";
 import VideosCard, { SortColumn, SortDirection, VideoColumnSearch } from "./new/VideosCard";
 import { useAuth } from "@/app/context/AuthContext";
+import { useDebounce } from "@/app/hooks/useDebounce";
 
 
 
@@ -58,6 +59,17 @@ export default function VideosPage() {
     });
 
   // =========================================================
+  // DEBOUNCED SEARCH
+  // =========================================================
+
+  const debouncedSearch = useDebounce(searchText, 500);
+
+  const debouncedColumnSearch = useDebounce(
+    columnSearch,
+    500
+  );
+
+  // =========================================================
   // SORT
   // =========================================================
 
@@ -92,7 +104,7 @@ export default function VideosPage() {
       page: currentPage,
       limit: itemsPerPage,
 
-      search: searchText,
+      search: debouncedSearch,
 
       dateFrom,
       dateTo,
@@ -100,10 +112,10 @@ export default function VideosPage() {
       sortBy,
       sortOrder,
 
-      videoSearch: columnSearch.video,
-      itemSearch: columnSearch.item,
-      sectorSearch: columnSearch.sector,
-      productionSearch: columnSearch.production,
+      videoSearch: debouncedColumnSearch.video,
+      itemSearch: debouncedColumnSearch.item,
+      sectorSearch: debouncedColumnSearch.sector,
+      productionSearch: debouncedColumnSearch.production,
     },
     {
       skip: activeFilter !== "all",
@@ -126,7 +138,7 @@ export default function VideosPage() {
       page: currentPage,
       limit: itemsPerPage,
 
-      search: searchText,
+      search: debouncedSearch,
 
       dateFrom,
       dateTo,
@@ -134,10 +146,10 @@ export default function VideosPage() {
       sortBy,
       sortOrder,
 
-      videoSearch: columnSearch.video,
-      itemSearch: columnSearch.item,
-      sectorSearch: columnSearch.sector,
-      productionSearch: columnSearch.production,
+      videoSearch: debouncedColumnSearch.video,
+      itemSearch: debouncedColumnSearch.item,
+      sectorSearch: debouncedColumnSearch.sector,
+      productionSearch: debouncedColumnSearch.production,
     },
     {
       skip: activeFilter !== "mine",
