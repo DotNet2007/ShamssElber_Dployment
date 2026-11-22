@@ -2287,7 +2287,7 @@ import {
   Share2,
   Trash2,
   UploadCloud,
-  User,
+  // User,
   Video,
   Workflow,
   Grid3X3,
@@ -2315,6 +2315,8 @@ import {
   selectClass,
 } from "./EditVideoFormControls";
 import { useAuth } from "@/app/context/AuthContext";
+import SpeakersSelector from "../../ui/SpeakersSelector";
+import AddItemModal from "@/app/(archive)/videos/add/AddItemModal";
 
 type VideoSource = "device" | "server";
 
@@ -2328,6 +2330,9 @@ export default function EditVideoPage() {
   const [videoSource, setVideoSource] = useState<VideoSource>("device");
 
   const {
+
+    // isFormInitialized,
+
     videoInputRef,
     thumbnailInputRef,
     dateInputRef,
@@ -2482,8 +2487,14 @@ export default function EditVideoPage() {
     hymnName,
     setHymnName,
 
-    speakerName,
-    setSpeakerName,
+    // speakerName,
+    // setSpeakerName,
+
+    selectedSpeakers,
+    setSelectedSpeakers,
+
+    manualSpeakers,
+    setManualSpeakers,
 
     channelName,
     setChannelName,
@@ -2543,7 +2554,18 @@ export default function EditVideoPage() {
     handleDownloadVideo,
     uploadProgress,
     uploadPhase,
-    isSavingUpdate
+    isSavingUpdate,
+
+    openAddModal,
+    isAddModalOpen,
+    getAddModalTitle,
+    newValue,
+    setNewValue,
+    closeAddModal,
+    handleAddItem,
+
+
+
   } = useEditVideo();
 
   // ==================================================
@@ -2691,6 +2713,7 @@ export default function EditVideoPage() {
                 type="button"
                 onClick={handleSave}
                 disabled={
+                  // !isFormInitialized ||
                   isSaving ||
                   isSubmitting ||
                   isDeleting ||
@@ -2941,7 +2964,7 @@ export default function EditVideoPage() {
                 <SelectWrapper
                   isAdmin={isAdmin}
                   icon={<Folder size={16} />}
-                  onAdd={() => console.log("إختر الصنف")}
+                  onAdd={() => openAddModal("item")}
                   disabled={isLocked || itemsIsLoading}
                 >
                   <select
@@ -2971,7 +2994,7 @@ export default function EditVideoPage() {
                 <SelectWrapper
                   isAdmin={isAdmin}
                   icon={<Building2 size={16} />}
-                  onAdd={() => console.log("إضافة جهة إنتاج 1")}
+                  onAdd={() => openAddModal("production1")}
                   disabled={isLocked || productEntitiesOneIsLoading}
                 >
                   <select
@@ -3001,7 +3024,7 @@ export default function EditVideoPage() {
                 <SelectWrapper
                   isAdmin={isAdmin}
                   icon={<Building2 size={16} />}
-                  onAdd={() => console.log("إضافة جهة إنتاج 2")}
+                  onAdd={() => openAddModal("production2")}
                   disabled={isLocked || productEntitiesTwoIsLoading}
                 >
                   <select
@@ -3031,7 +3054,7 @@ export default function EditVideoPage() {
                 <SelectWrapper
                   isAdmin={isAdmin}
                   icon={<Layers size={16} />}
-                  onAdd={() => console.log("إضافة قطاع")}
+                  onAdd={() => openAddModal("sector")}
                   disabled={isLocked || sectorsIsLoading}
                 >
                   <select
@@ -3061,7 +3084,7 @@ export default function EditVideoPage() {
                 <SelectWrapper
                   isAdmin={isAdmin}
                   icon={<Languages size={16} />}
-                  onAdd={() => console.log("إضافة ترجمه")}
+                  onAdd={() => openAddModal("translation")}
                   disabled={isLocked || translationsIsLoading}
                 >
                   <select
@@ -3094,7 +3117,7 @@ export default function EditVideoPage() {
                 <SelectWrapper
                   isAdmin={isAdmin}
                   icon={<Package size={16} />}
-                  onAdd={() => console.log("إضافة نوع منتج")}
+                  onAdd={() => openAddModal("productType")}
                   disabled={isLocked || itemsTypeIsLoading}
                 >
                   <select
@@ -3124,7 +3147,7 @@ export default function EditVideoPage() {
                 <SelectWrapper
                   isAdmin={isAdmin}
                   icon={<CalendarDays size={16} />}
-                  onAdd={() => console.log("إضافة نوع حدث")}
+                  onAdd={() => openAddModal("eventType")}
                   disabled={isLocked || eventTypesIsLoading}
                 >
                   <select
@@ -3157,7 +3180,7 @@ export default function EditVideoPage() {
                 <SelectWrapper
                   isAdmin={isAdmin}
                   icon={<Workflow size={16} />}
-                  onAdd={() => console.log("إضافة خط إنتاج")}
+                  onAdd={() => openAddModal("productionLine")}
                   disabled={isLocked || productionLinesIsLoading}
                 >
                   <select
@@ -3202,7 +3225,7 @@ export default function EditVideoPage() {
                 <SelectWrapper
                   isAdmin={isAdmin}
                   icon={<ListOrdered size={16} />}
-                  onAdd={() => console.log("إضافة تسلسل")}
+                  onAdd={() => openAddModal("productSerial")}
                   disabled={isLocked || itemsSerIsLoading}
                 >
                   <select
@@ -3490,7 +3513,7 @@ export default function EditVideoPage() {
                 <SelectWrapper
                   isAdmin={isAdmin}
                   icon={<Music2 size={16} />}
-                  onAdd={() => console.log("إضافة ترنيمة")}
+                  onAdd={() => openAddModal("song")}
                   disabled={isLocked || songsIsLoading}
                 >
                   <select
@@ -3517,31 +3540,17 @@ export default function EditVideoPage() {
               {/* SPEAKER */}
 
               <FormGroup label="اسم المتكلم">
-                <SelectWrapper
+                <SpeakersSelector
+                  onAdd={() => openAddModal("speaker")}
                   isAdmin={isAdmin}
-                  icon={<User size={16} />}
-                  onAdd={() => console.log("إضافة متكلم")}
-                  disabled={isLocked || speakersIsLoading}
-                >
-                  <select
-                    value={speakerName}
-                    onChange={(e) => setSpeakerName(e.target.value)}
-                    className={selectClass}
-                    disabled={isLocked || speakersIsLoading}
-                  >
-                    <option value="">
-                      {speakersIsLoading
-                        ? "جاري تحميل القائمين ع العمل..."
-                        : "اختر متكلم"}
-                    </option>
-
-                    {speakers.map((speaker) => (
-                      <option key={speaker.Code} value={speaker.Code}>
-                        {speaker.DescA}
-                      </option>
-                    ))}
-                  </select>
-                </SelectWrapper>
+                  speakers={speakers}
+                  selectedCodes={selectedSpeakers}
+                  manualSpeakers={manualSpeakers}
+                  disabled={isLocked}
+                  loading={speakersIsLoading}
+                  onSelectedChange={setSelectedSpeakers}
+                  onManualChange={setManualSpeakers}
+                />
               </FormGroup>
 
               {/* CONTENT TYPE */}
@@ -3586,7 +3595,7 @@ export default function EditVideoPage() {
                   <SelectWrapper
                     isAdmin={isAdmin}
                     icon={<Video size={16} />}
-                    onAdd={() => console.log("إضافة قناة")}
+                    onAdd={() => openAddModal("channel")}
                   >
                     <select
                       value={channelName}
@@ -4747,6 +4756,15 @@ export default function EditVideoPage() {
           </div>
         </div>
       )}
+
+      <AddItemModal
+        isOpen={isAddModalOpen}
+        title={getAddModalTitle()}
+        value={newValue}
+        onChange={setNewValue}
+        onClose={closeAddModal}
+        onSave={handleAddItem}
+      />
     </main>
   );
 }

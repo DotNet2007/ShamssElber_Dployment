@@ -2830,7 +2830,7 @@
 
 import { ChangeEvent, DragEvent, useEffect, useRef, useState } from "react";
 
-import { Building2, Calendar, CalendarDays, ChevronDown, FileVideo, Folder, Globe2, Image as ImageIcon, ImagePlus, Layers, ListOrdered, Languages, Music2, Package, Plus, RefreshCw, Save, Search, HardDrive, Share2, Trash2, UploadCloud, User, Video, Workflow, Grid3X3, Grid2X2, Rows3 } from "lucide-react";
+import { Building2, Calendar, CalendarDays, ChevronDown, FileVideo, Folder, Globe2, Image as ImageIcon, ImagePlus, Layers, ListOrdered, Languages, Music2, Package, Plus, RefreshCw, Save, Search, HardDrive, Share2, Trash2, UploadCloud, Video, Workflow, Grid3X3, Grid2X2, Rows3 } from "lucide-react";
 
 
 import { formatDuration, formatFileSize } from "@/app/helpers/videoHelper";
@@ -2849,6 +2849,7 @@ import { toast } from "sonner";
 import AddItemModal from "./AddItemModal";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
+import SpeakersSelector from "@/app/components/ui/SpeakersSelector";
 
 
 
@@ -3081,6 +3082,7 @@ export default function AddVideoPage() {
   const [videoSource, setVideoSource] = useState<VideoSource>("device");
   const [selectedServerVideo, setSelectedServerVideo] =
     useState<ServerVideoFile | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showServerBrowser, setShowServerBrowser] = useState(false);
   const [serverVideos, setServerVideos] = useState<ServerVideoFile[]>([]);
   const [serverSearch, setServerSearch] = useState("");
@@ -3222,7 +3224,11 @@ export default function AddVideoPage() {
   // ==================================================
 
   const [hymnName, setHymnName] = useState("");
-  const [speakerName, setSpeakerName] = useState("");
+  // const [speakerName, setSpeakerName] = useState("");
+
+  const [selectedSpeakers, setSelectedSpeakers] = useState<number[]>([]);
+  const [manualSpeakers, setManualSpeakers] = useState<string[]>([]);
+
   const [channelName, setChannelName] = useState("");
 
 
@@ -3505,7 +3511,9 @@ export default function AddVideoPage() {
     setProductionLine("");
 
     setHymnName("");
-    setSpeakerName("");
+    // setSpeakerName("");
+    setManualSpeakers([]);
+    setSelectedSpeakers([])
 
     setIsRepeated(false);
     setRepeatType("");
@@ -3629,7 +3637,10 @@ const handleSave = async () => {
   // ==================================================
 
   formData.append("hymnName", hymnName || "");
-  formData.append("speakerName", speakerName || "");
+  // formData.append("speakerName", speakerName || "");
+
+  formData.append("speakerCodes",JSON.stringify(selectedSpeakers));
+  formData.append("manualSpeakers",JSON.stringify(manualSpeakers));
 
   // ==================================================
   // EVENT STATUS
@@ -4944,7 +4955,21 @@ const handleSave = async () => {
                 14. اسم المتكلم
                 ================================================== */}
 
-            <FormGroup label="اسم المتكلم">
+              <FormGroup label="اسم المتكلم">
+                <SpeakersSelector
+                  onAdd={() => openAddModal("speaker")}
+                  isAdmin={isAdmin}
+                  speakers={speakers}
+                  selectedCodes={selectedSpeakers}
+                  manualSpeakers={manualSpeakers}
+                  disabled={speakersIsLoading}
+                  loading={speakersIsLoading}
+                  onSelectedChange={setSelectedSpeakers}
+                  onManualChange={setManualSpeakers}
+                />
+              </FormGroup>
+
+            {/* <FormGroup label="اسم المتكلم">
               <SelectWrapper
                 isAdmin={isAdmin}
                 icon={<User size={16} />}
@@ -4974,7 +4999,7 @@ const handleSave = async () => {
                 </select>
 
               </SelectWrapper>
-            </FormGroup>
+            </FormGroup> */}
 
             {isAdmin && (
               <FormGroup label="نوع المحتوى">

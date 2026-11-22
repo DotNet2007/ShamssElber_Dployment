@@ -216,3 +216,106 @@ export function getFileUrl(
   return `${process.env.NEXT_PUBLIC_API_URL}/uploads/videos/${encodeURIComponent(value)}`;
   // return `${baseUrl}/uploads/videos/${encodeURIComponent(value)}`;
 }
+
+
+
+export function normalizeSpeakerCodes(value: unknown): number[] {
+  if (!Array.isArray(value)) return [];
+
+  return [...new Set(value.map(Number))]
+    .filter(code => Number.isInteger(code) && code > 0)
+    .sort((a, b) => a - b);
+};
+
+export function normalizeManualSpeakers(value: unknown): string[] {
+  let parsed = value;
+
+  if (typeof parsed === "string") {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      return [];
+    }
+  }
+
+  if (!Array.isArray(parsed)) return [];
+
+  return parsed
+    .map(name => String(name).trim())
+    .filter(Boolean);
+};
+
+
+export function getErrorMessage(error: unknown, fallback: string ): string {
+    if (typeof error !== "object" || error === null) {
+      return fallback;
+    }
+
+    const value = error as {
+      data?: unknown;
+      message?: unknown;
+      error?: unknown;
+      response?: {
+        data?: unknown;
+      };
+    };
+
+    const responseData =
+      typeof value.response?.data === "object" &&
+      value.response.data !== null
+        ? (value.response.data as {
+            message?: unknown;
+            error?: unknown;
+          })
+        : undefined;
+
+    const data =
+      typeof value.data === "object" && value.data !== null
+        ? (value.data as {
+            message?: unknown;
+            error?: unknown;
+          })
+        : responseData;
+
+    const candidates = [
+      data?.message,
+      data?.error,
+      value.message,
+      value.error,
+    ];
+
+    const serverMessage = candidates.find(
+      (candidate): candidate is string =>
+        typeof candidate === "string" &&
+        candidate.trim().length > 0,
+    )?.trim();
+
+    if (!serverMessage) {
+      return fallback;
+    }
+
+    
+    const messages: Record<string, string> = {
+      "Product name already exists": "اسم المنتج موجود بالفعل",
+      "Product not found": "المنتج غير موجود",
+      "Event name already exists": "اسم الحدث موجود بالفعل",
+      "Event not found": "الحدث غير موجود",
+      "Video not found": "الفيديو غير موجود",
+      "Unauthorized": "غير مصرح لك بتنفيذ هذا الإجراء",
+      "Forbidden": "ليس لديك صلاحية لتنفيذ هذا الإجراء",
+      "Validation failed": "البيانات المدخلة غير صحيحة",
+    };
+
+    
+    if (messages[serverMessage]) {
+      return messages[serverMessage];
+    }
+
+   
+    if (/[\u0600-\u06FF]/.test(serverMessage)) {
+      return serverMessage;
+    }
+
+    
+    return fallback;
+  }
