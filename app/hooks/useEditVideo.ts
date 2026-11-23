@@ -1935,7 +1935,6 @@ import {
   isValidThumbnailFile,
   getApiErrorMessage,
   getThumbnailUrl,
-  normalizeSpeakerCodes,
   normalizeManualSpeakers,
   getErrorMessage,
 } from "../helpers/edit-video/editVideo.helpers";
@@ -2280,7 +2279,7 @@ export function useEditVideo() {
   const [hymnName, setHymnName] = useState("");
   // const [speakerName, setSpeakerName] = useState("");
 
-  const [selectedSpeakers, setSelectedSpeakers] = useState<number[]>([]);
+  const [selectedSpeakerCode, setSelectedSpeakerCode] = useState<number | null>(null);
   const [manualSpeakers, setManualSpeakers] = useState<string[]>([]);
 
   const [channelName, setChannelName] = useState("");
@@ -2344,26 +2343,17 @@ export function useEditVideo() {
       : "";
 
     // Original registered speakers
-    const originalSpeakerCodes = normalizeSpeakerCodes(
-      Array.isArray(original.speakerCodes)
-        ? original.speakerCodes
-        : Array.isArray(original.VideoSpeakers)
-          ? original.VideoSpeakers.map(
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (item: any) => item.Speaker_Code
-            )
-          : video.Speaker_Code != null
-            ? [video.Speaker_Code]
-            : []
-    );
+    const originalSpeakerCode =
+      video.Speaker_Code != null
+        ? Number(video.Speaker_Code)
+        : null;
+
+    const currentSpeakerCode = selectedSpeakerCode; 
 
     // Original manual speakers
     const originalManualSpeakers = normalizeManualSpeakers(
       original.manualSpeakers ?? original.Manual_Speakers
     );
-
-    const currentSpeakerCodes =
-      normalizeSpeakerCodes(selectedSpeakers);
 
     const currentManualSpeakers =
       normalizeManualSpeakers(manualSpeakers);
@@ -2400,8 +2390,7 @@ export function useEditVideo() {
       hymnName !== String(video.Song_Code ?? "") ||
 
       // Registered speakers
-      JSON.stringify(currentSpeakerCodes) !==
-        JSON.stringify(originalSpeakerCodes) ||
+      currentSpeakerCode !== originalSpeakerCode ||
 
       // Manual speakers
       JSON.stringify(currentManualSpeakers) !==
@@ -2467,7 +2456,6 @@ export function useEditVideo() {
     originalEventNameText,
     productionLine,
     hymnName,
-    selectedSpeakers,
     manualSpeakers,
     channelName,
     contentType,
@@ -2484,6 +2472,7 @@ export function useEditVideo() {
     videoFile,
     thumbnailFile,
     serverFileName,
+    selectedSpeakerCode,
   ]);
 
 
@@ -2637,26 +2626,14 @@ export function useEditVideo() {
         : ""
     );
 
-    // Registered speakers. Prefer the complete multi-speaker relation;
-    // fall back to the legacy Speaker_Code for older API responses.
-    const rawSpeakerCodes = Array.isArray(videoExtra.speakerCodes)
-      ? videoExtra.speakerCodes
-      : Array.isArray(videoExtra.VideoSpeakers)
-        ? (videoExtra.VideoSpeakers as Array<{
-            Speaker_Code?: number | string;
-            speakerCode?: number | string;
-            Speaker?: { Code?: number | string };
-          }>).map(
-            (entry) =>
-              entry.Speaker_Code ??
-              entry.speakerCode ??
-              entry.Speaker?.Code
-          )
-        : video.Speaker_Code != null
-          ? [video.Speaker_Code]
-          : [];
+    
+    // Main registered speaker
+    setSelectedSpeakerCode(
+      video.Speaker_Code != null
+        ? Number(video.Speaker_Code)
+        : null
+    );
 
-    setSelectedSpeakers(normalizeSpeakerCodes(rawSpeakerCodes));
 
     // Manual speakers may arrive as a JSON string or an already-parsed array.
     setManualSpeakers(
@@ -3102,7 +3079,7 @@ export function useEditVideo() {
 
     if (hymnName) formData.append("hymnName", hymnName);
   
-    formData.append("speakerCodes",JSON.stringify(selectedSpeakers));
+    formData.append( "speakerCode", selectedSpeakerCode?.toString() ?? "" );
     formData.append("manualSpeakers",JSON.stringify(manualSpeakers));
    
    
@@ -3413,10 +3390,15 @@ export function useEditVideo() {
             await refetchSongs();
             break;
   
-          case "speaker":
-            await addSpeaker({ DescA: newValue.trim() }).unwrap();
+          case "speaker": {
+            const result = await addSpeaker({ DescA: newValue.trim() }).unwrap();
             await refetchSpeakers();
+            const newCode = result?.Code ?? result?.data?.Code;
+            if (newCode != null) {
+              setSelectedSpeakerCode(Number(newCode));
+            }
             break;
+          }
   
           case "channel":
             await addChannel({ DescA: newValue.trim() }).unwrap();
@@ -3653,8 +3635,8 @@ export function useEditVideo() {
     // speakerName,
     // setSpeakerName,
 
-    selectedSpeakers,
-    setSelectedSpeakers,
+    selectedSpeakerCode,
+    setSelectedSpeakerCode,
 
     manualSpeakers,
     setManualSpeakers,

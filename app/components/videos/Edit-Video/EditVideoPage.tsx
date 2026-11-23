@@ -2490,8 +2490,8 @@ export default function EditVideoPage() {
     // speakerName,
     // setSpeakerName,
 
-    selectedSpeakers,
-    setSelectedSpeakers,
+    selectedSpeakerCode,
+    setSelectedSpeakerCode,
 
     manualSpeakers,
     setManualSpeakers,
@@ -3544,11 +3544,11 @@ export default function EditVideoPage() {
                   onAdd={() => openAddModal("speaker")}
                   isAdmin={isAdmin}
                   speakers={speakers}
-                  selectedCodes={selectedSpeakers}
+                  selectedCodes={selectedSpeakerCode}
                   manualSpeakers={manualSpeakers}
                   disabled={isLocked}
                   loading={speakersIsLoading}
-                  onSelectedChange={setSelectedSpeakers}
+                  onSelectedChange={setSelectedSpeakerCode}
                   onManualChange={setManualSpeakers}
                 />
               </FormGroup>

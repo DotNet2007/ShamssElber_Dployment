@@ -426,10 +426,7 @@ export function useAddVideo() {
 
         const code = result?.Code ?? result?.data?.Code;
         if (code != null) {
-        setSelectedSpeakers((previous) => [
-            ...previous,
-            Number(code),
-        ]);
+          setSelectedSpeakerCode(Number(code));
         }
         break;
     }
@@ -502,7 +499,8 @@ export function useAddVideo() {
   // ==================================================
 
   const [hymnName, setHymnName] = useState("");
-  const [selectedSpeakers, setSelectedSpeakers] = useState<number[]>([]);
+  // const [selectedSpeakers, setSelectedSpeakers] = useState<number[]>([]);
+  const [selectedSpeakerCode, setSelectedSpeakerCode] = useState<number | null>(null);
   const [manualSpeakers, setManualSpeakers] = useState<string[]>([]);
   const [channelName, setChannelName] = useState("");
 
@@ -705,7 +703,7 @@ export function useAddVideo() {
 
     setHymnName("");
     setManualSpeakers([]);
-    setSelectedSpeakers([]);
+    setSelectedSpeakerCode(null);
     setChannelName("");
 
     setIsRepeated(false);
@@ -809,7 +807,7 @@ export function useAddVideo() {
 
     formData.append("hymnName", hymnName || "");
 
-    formData.append("speakerCodes",JSON.stringify(selectedSpeakers));
+    formData.append("speakerCode", selectedSpeakerCode?.toString() ?? "");
 
     formData.append("manualSpeakers",JSON.stringify(manualSpeakers));
 
@@ -1109,8 +1107,8 @@ export function useAddVideo() {
     // Hymn / speakers / channel
     hymnName,
     setHymnName,
-    selectedSpeakers,
-    setSelectedSpeakers,
+    selectedSpeakerCode,
+    setSelectedSpeakerCode,
     manualSpeakers,
     setManualSpeakers,
     channelName,

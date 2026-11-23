@@ -192,8 +192,8 @@ export default function AddVideoPage() {
     // Hymn / speakers / channel
     hymnName,
     setHymnName,
-    selectedSpeakers,
-    setSelectedSpeakers,
+    selectedSpeakerCode,
+    setSelectedSpeakerCode,
     manualSpeakers,
     setManualSpeakers,
     channelName,
@@ -932,11 +932,11 @@ export default function AddVideoPage() {
                 onAdd={() => openAddModal("speaker")}
                 isAdmin={isAdmin}
                 speakers={speakers}
-                selectedCodes={selectedSpeakers}
+                selectedCodes={selectedSpeakerCode}
                 manualSpeakers={manualSpeakers}
                 disabled={speakersIsLoading}
                 loading={speakersIsLoading}
-                onSelectedChange={setSelectedSpeakers}
+                onSelectedChange={setSelectedSpeakerCode}
                 onManualChange={setManualSpeakers}
               />
             </FormGroup>
