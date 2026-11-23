@@ -12,6 +12,8 @@ import {
 
 import { getArabicDayName } from "@/app/helpers/getArabicDayName";
 import { getThumbnailUrl } from "@/app/helpers/edit-video/editVideo.helpers";
+import { useState } from "react";
+import ViewerVideoModal from "@/app/components/ViewerVideoModal";
 
 /* =========================================================
    TYPES
@@ -220,6 +222,9 @@ export default function VideosCard({
 
   onView,
 }: VideosCardProps) {
+
+  const [selectedVideo, setSelectedVideo] = useState<VideoItem | null>(null);
+
   return (
     <section
       dir="rtl"
@@ -248,10 +253,19 @@ export default function VideosCard({
         /* =========================================
            VIEWER: READ ONLY CARDS
            ========================================= */
+           <>
         <ViewerVideoGrid
           videos={videos}
-          onView={onView}
+          // onView={onView}
+          onView={(video) => setSelectedVideo(video)}
         />
+
+        <ViewerVideoModal
+          video={selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+        />
+
+        </>
       ) : (
         /* =========================================
            ADMIN / EMPLOYEE: EXISTING TABLE
